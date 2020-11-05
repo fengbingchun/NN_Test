@@ -1,4 +1,4 @@
-#ifndef _CNN_HPP_
+﻿#ifndef _CNN_HPP_
 #define _CNN_HPP_
 
 // Blog: http://blog.csdn.net/fengbingchun/article/details/53445209

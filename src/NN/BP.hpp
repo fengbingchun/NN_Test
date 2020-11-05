@@ -1,4 +1,4 @@
-#ifndef _BP_HPP_
+﻿#ifndef _BP_HPP_
 #define _BP_HPP_
 
 // Blog: http://blog.csdn.net/fengbingchun/article/details/50407764

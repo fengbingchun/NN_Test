@@ -5,7 +5,7 @@ dir_name=`dirname "${real_path}"`
 echo "real_path: ${real_path}, dir_name: ${dir_name}"
 
 # multi-line comment
-<<COMMENT
+#<<COMMENT
 
 data_dir="data"
 if [ -d ${dir_name}/${data_dir} ]; then
@@ -35,7 +35,7 @@ if [[ ${rc} != 0 ]]; then
 fi
 
 # multi-line comment
-COMMENT
+#COMMENT
 
 new_dir_name=${dir_name}/build
 mkdir -p ${new_dir_name}
