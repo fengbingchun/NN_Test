@@ -60,7 +60,7 @@
 	- ORL Faces Database
 
 **The project support platform:** 
-- windows7/10 64 bits: It can be directly build with VS2013 in windows7/10 64bits.
+- windows7/10 64 bits: It can be directly build with VS2017 in windows7/10 64bits.
 - Linux:
 	- DatasetToImage support cmake build(file position: prj/linux_cmake_DatasetToImage)
 	- Math support cmake build(file position: prj/linux_cmake_Math)

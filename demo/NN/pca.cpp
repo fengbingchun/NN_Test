@@ -313,12 +313,12 @@ int PCA<T>::gemm(const std::vector<T>& src1, const std::vector<std::vector<T>>& 
 
 	switch (flags) {
 	case 0:
-		d_size = Size_{ src2[0].size(), a_size.height };
+		d_size = Size_{ static_cast<int>(src2[0].size()), a_size.height };
 		len = src2.size();
 		CHECK(a_size.width == len);
 		break;
 	case 1:
-		d_size = Size_{ src2.size(), a_size.height };
+		d_size = Size_{ static_cast<int>(src2.size()), a_size.height };
 		len = src2[0].size();
 		CHECK(a_size.width == len);
 		break;
