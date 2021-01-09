@@ -1,5 +1,7 @@
 #include "funset.hpp"
 #include <iostream>
+#include <vector>
+#include <memory>
 #include <opencv2/opencv.hpp>
 
 #include "perceptron.hpp"
@@ -15,6 +17,38 @@
 #include "logistic_regression2.hpp"
 #include "single_hidden_layer.hpp"
 #include "kmeans.hpp"
+#include "lrn.hpp"
+
+// ========================= LRN(Local Response Normalization) ====================
+int test_lrn()
+{
+	int batch = 2, channel = 4, height = 2, width = 2;
+	std::vector<float> input{ 1., 5., 9., 13., 2., 6., 10., 14., 3., 7., 11., 15., 4., 8., 12., 16.,
+			17., 21., 25., 29., 18., 22., 26., 30., 19., 23., 27., 31., 20., 24., 28., 32.};
+	CHECK(batch * channel * height * width == input.size());
+
+	std::unique_ptr<float[]> output(new float[input.size()]);
+	ANN::LRN<> lrn;
+	lrn.run(input.data(), batch, channel, height, width, output.get());
+
+	auto print = [height, width](const float* data, int length) {
+		int size = height * width;
+		for (int i = 0; i < length / size; ++i) {
+			const float* p = data + i * size;
+
+			for (int j = 0; j < size; ++j) {
+				fprintf(stdout, "  %f", p[j]);
+			}
+
+			fprintf(stdout, "\n");
+		}
+	};
+
+	fprintf(stdout, "input:\n"); print(input.data(), input.size());
+	fprintf(stdout, "output:\n"); print(output.get(), input.size());
+
+	return 0;
+}
 
 // ================================= K-Means ===============================
 int test_kmeans()

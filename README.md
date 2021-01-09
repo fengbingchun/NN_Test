@@ -36,6 +36,7 @@
 		- softmax function
 	- Layers
 		- Dropout
+		- LRN(Local Response Normalization)
 	- common algorithm
 		- Brute Force(string match)
 - open source library's usage(C++)

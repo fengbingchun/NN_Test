@@ -173,10 +173,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\demo\NN\funset.cpp" />
-    <ClCompile Include="..\..\..\demo\NN\knn.cpp" />
     <ClCompile Include="..\..\..\demo\NN\libsvm.cpp" />
     <ClCompile Include="..\..\..\demo\NN\opencv.cpp" />
-    <ClCompile Include="..\..\..\demo\NN\pca.cpp" />
     <ClCompile Include="..\..\..\demo\NN\test_NN.cpp" />
     <ClCompile Include="..\..\..\src\libsvm\svm.cpp" />
     <ClCompile Include="..\..\..\src\NN\BP.cpp" />
@@ -184,29 +182,33 @@
     <ClCompile Include="..\..\..\src\NN\common.cpp" />
     <ClCompile Include="..\..\..\src\NN\decision_tree.cpp" />
     <ClCompile Include="..\..\..\src\NN\kmeans.cpp" />
+    <ClCompile Include="..\..\..\src\NN\knn.cpp" />
     <ClCompile Include="..\..\..\src\NN\linear_regression.cpp" />
     <ClCompile Include="..\..\..\src\NN\logistic_regression.cpp" />
     <ClCompile Include="..\..\..\src\NN\logistic_regression2.cpp" />
+    <ClCompile Include="..\..\..\src\NN\lrn.cpp" />
     <ClCompile Include="..\..\..\src\NN\naive_bayes_classifier.cpp" />
+    <ClCompile Include="..\..\..\src\NN\pca.cpp" />
     <ClCompile Include="..\..\..\src\NN\perceptron.cpp" />
     <ClCompile Include="..\..\..\src\NN\single_hidden_layer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\demo\NN\funset.hpp" />
-    <ClInclude Include="..\..\..\demo\NN\knn.hpp" />
     <ClInclude Include="..\..\..\demo\NN\libsvm.hpp" />
     <ClInclude Include="..\..\..\demo\NN\opencv.hpp" />
-    <ClInclude Include="..\..\..\demo\NN\pca.hpp" />
     <ClInclude Include="..\..\..\src\libsvm\svm.h" />
     <ClInclude Include="..\..\..\src\NN\BP.hpp" />
     <ClInclude Include="..\..\..\src\NN\CNN.hpp" />
     <ClInclude Include="..\..\..\src\NN\common.hpp" />
     <ClInclude Include="..\..\..\src\NN\decision_tree.hpp" />
     <ClInclude Include="..\..\..\src\NN\kmeans.hpp" />
+    <ClInclude Include="..\..\..\src\NN\knn.hpp" />
     <ClInclude Include="..\..\..\src\NN\linear_regression.hpp" />
     <ClInclude Include="..\..\..\src\NN\logistic_regression.hpp" />
     <ClInclude Include="..\..\..\src\NN\logistic_regression2.hpp" />
+    <ClInclude Include="..\..\..\src\NN\lrn.hpp" />
     <ClInclude Include="..\..\..\src\NN\naive_bayes_classifier.hpp" />
+    <ClInclude Include="..\..\..\src\NN\pca.hpp" />
     <ClInclude Include="..\..\..\src\NN\perceptron.hpp" />
     <ClInclude Include="..\..\..\src\NN\single_hidden_layer.hpp" />
   </ItemGroup>

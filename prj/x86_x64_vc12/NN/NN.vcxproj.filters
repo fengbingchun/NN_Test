@@ -51,13 +51,7 @@
     <ClCompile Include="..\..\..\demo\NN\libsvm.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\demo\NN\knn.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\NN\decision_tree.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\demo\NN\pca.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\NN\logistic_regression2.cpp">
@@ -67,6 +61,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\NN\kmeans.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\NN\knn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\NN\pca.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\NN\lrn.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -104,13 +107,7 @@
     <ClInclude Include="..\..\..\demo\NN\libsvm.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\demo\NN\knn.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\NN\decision_tree.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\demo\NN\pca.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\NN\logistic_regression2.hpp">
@@ -120,6 +117,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\NN\kmeans.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\NN\knn.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\NN\pca.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\NN\lrn.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
