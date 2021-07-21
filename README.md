@@ -37,6 +37,7 @@
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)
+		- BN(Batch Normalization)
 	- common algorithm
 		- Brute Force(string match)
 - open source library's usage(C++)

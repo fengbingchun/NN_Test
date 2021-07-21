@@ -177,6 +177,7 @@
     <ClCompile Include="..\..\..\demo\NN\opencv.cpp" />
     <ClCompile Include="..\..\..\demo\NN\test_NN.cpp" />
     <ClCompile Include="..\..\..\src\libsvm\svm.cpp" />
+    <ClCompile Include="..\..\..\src\NN\batch_normalization.cpp" />
     <ClCompile Include="..\..\..\src\NN\BP.cpp" />
     <ClCompile Include="..\..\..\src\NN\CNN.cpp" />
     <ClCompile Include="..\..\..\src\NN\common.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="..\..\..\demo\NN\libsvm.hpp" />
     <ClInclude Include="..\..\..\demo\NN\opencv.hpp" />
     <ClInclude Include="..\..\..\src\libsvm\svm.h" />
+    <ClInclude Include="..\..\..\src\NN\batch_normalization.hpp" />
     <ClInclude Include="..\..\..\src\NN\BP.hpp" />
     <ClInclude Include="..\..\..\src\NN\CNN.hpp" />
     <ClInclude Include="..\..\..\src\NN\common.hpp" />

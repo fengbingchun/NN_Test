@@ -18,6 +18,36 @@
 #include "single_hidden_layer.hpp"
 #include "kmeans.hpp"
 #include "lrn.hpp"
+#include "batch_normalization.hpp"
+
+// ========================= Batch Normalization ====================
+int test_batch_normalization()
+{
+	const std::vector<float> data = { 11.1, -2.2, 23.3, 54.4, 58.5, -16.6,
+									-97.7, -28.8, 49.9, -61.3, 52.6, -33.9,
+									-2.45, -15.7, 72.4, 9.1, 47.2, 21.7};
+	const int number = 3, channels = 1, height = 1, width = 6;
+
+	ANN::BatchNorm bn(number, channels, height, width);
+	bn.LoadData(data.data(), data.size());
+
+	std::unique_ptr<float[]> output = bn.Run();
+
+	fprintf(stdout, "result:\n");
+	for (int n = 0; n < number; ++n) {
+		const float* p = output.get() + n * (channels * height * width);
+		for (int c = 0; c < channels; ++c) {
+			for (int h = 0; h < height; ++h) {
+				for (int w = 0; w < width; ++w) {
+					fprintf(stdout, "%f, ", p[c * (height * width) + h * width + w]);
+				}
+				fprintf(stdout, "\n");
+			}
+		}
+	}
+
+	return 0;
+}
 
 // ========================= LRN(Local Response Normalization) ====================
 int test_lrn()

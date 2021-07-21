@@ -1,6 +1,7 @@
 #ifndef FBC_TEST_NN_FUNSET_HPP_
 #define FBC_TEST_NN_FUNSET_HPP_
 
+int test_batch_normalization(); // Batch Normalization
 int test_lrn(); // Local Response Normalization
 int test_kmeans();
 int test_single_hidden_layer_train(); // two categories
