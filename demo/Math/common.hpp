@@ -75,6 +75,31 @@ int brute_force(const std::string& str, const std::string& sub, brute_force_resu
 	return 0;
 }
 
+// ========================= Activation Function: tanh =====================
+// Blog: https://blog.csdn.net/fengbingchun/article/details/119202855
+template<typename _Tp>
+int activation_function_tanh(const _Tp* src, _Tp* dst, int length)
+{
+	for (int i = 0; i < length; ++i) {
+		_Tp ep = std::exp(src[i]);
+		_Tp em = std::exp(-src[i]);
+
+		dst[i] = (ep - em) / (ep + em);
+	}
+
+	return 0;
+}
+
+template<typename _Tp>
+int activation_function_tanh_derivative(const _Tp* src, _Tp* dst, int length)
+{
+	for (int i = 0; i < length; ++i) {
+		dst[i] = (_Tp)1. - src[i] * src[i];
+	}
+
+	return 0;
+}
+
 // ========================= Activation Function: softmax =====================
 // Blog: http://blog.csdn.net/fengbingchun/article/details/75220591
 template<typename _Tp>

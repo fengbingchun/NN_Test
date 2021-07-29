@@ -63,13 +63,20 @@ int test_brute_force_string_match()
 
 int test_activation_function()
 {
-	std::vector<float> src{ 1.23f, 4.14f, -3.23f, -1.23f, 5.21f, 0.234f, -0.78f, 6.23f };
+	std::vector<float> src{ 1.1f, -2.2f, 3.3f, 0.4f, -0.5f, -1.6f };
 	int length = src.size();
 	std::vector<float> dst(length);
 
 	fprintf(stderr, "source vector: \n");
 	fbc::print_matrix(src);
 	fprintf(stderr, "calculate activation function:\n");
+
+	fprintf(stderr, "type: tanh result: \n");
+	fbc::activation_function_tanh(src.data(), dst.data(), length);
+	fbc::print_matrix(dst);
+	fprintf(stderr, "type: tanh derivative result: \n");
+	fbc::activation_function_tanh_derivative(dst.data(), dst.data(), length);
+	fbc::print_matrix(dst);
 
 	fprintf(stderr, "type: sigmoid result: \n");
 	fbc::activation_function_sigmoid(src.data(), dst.data(), length);

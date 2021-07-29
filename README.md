@@ -34,6 +34,7 @@
 		- Leaky ReLUs(leaky rectified linear units)
 		- ELUs(Exponential linear units)
 		- softmax function
+		- tanh(Hyperbolic tangent)
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)
