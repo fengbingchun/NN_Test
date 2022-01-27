@@ -35,6 +35,8 @@
 		- ELUs(Exponential linear units)
 		- softmax function
 		- tanh(Hyperbolic tangent)
+	- Loss Function
+		- Cross-Entropy
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)

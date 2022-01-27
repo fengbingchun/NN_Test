@@ -8,6 +8,48 @@
 #include <opencv2/opencv.hpp>
 #include "common.hpp"
 
+int test_loss_function()
+{
+{ // only one sample
+	const int classes_number = 5;
+	std::vector<float> sample = { 0.0418, 0.0801, -1.3888, -1.9604, 1.0712 };
+	std::vector<float> target = { 0, 0, 1, 0, 0 }; // One-Hot
+	std::vector<float> input(classes_number);
+	assert(sample.size() == classes_number && target.size() == classes_number && input.size() == classes_number);
+
+	fbc::activation_function_softmax(sample.data(), input.data(), classes_number);
+	float output = fbc::loss_function_cross_entropy(target.data(), input.data(), classes_number);
+	fprintf(stdout, "output: %.4f\n", output);
+}
+
+{ // five samples
+	const int classes_number = 5, samples_number = 5;
+	std::vector<std::vector<float>> samples = {{0.0418, 0.0801, -1.3888, -1.9604, 1.0712 },
+												{0.3519, -0.6115, -0.0325,  0.4484, -0.1736},
+												{0.1530,  0.0670, -0.3894, -1.0830, -0.4757},
+												{-1.3519, 0.2115, 1.2325,  -1.4484, 0.9736},
+												{1.1230,  -0.5670, 1.0894, 1.9890, 0.03567}};
+	std::vector<std::vector<float>> targets = {{0, 0, 0, 0, 1},
+											   {0, 0, 0, 1, 0},
+											   {0, 0, 1, 0, 0},
+											   {0, 1, 0, 0, 0},
+											   {1, 0, 0, 0, 0}};
+	std::vector<std::vector<float>> inputs(samples_number);
+	assert(samples[0].size() == classes_number && targets[0].size() == classes_number && inputs.size() == samples_number);
+
+	float output = 0.;
+	for (int i = 0; i < samples_number; ++i) {
+		inputs[i].resize(classes_number);
+		fbc::activation_function_softmax(samples[i].data(), inputs[i].data(), classes_number);
+		output += fbc::loss_function_cross_entropy(targets[i].data(), inputs[i].data(), classes_number);
+	}
+	output /= samples_number;
+	fprintf(stdout, "output: %.4f\n", output);
+}
+
+	return 0;
+}
+
 int test_dropout()
 {
 	std::random_device rd; std::mt19937 gen(rd());

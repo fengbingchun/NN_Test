@@ -15,6 +15,18 @@
 
 namespace fbc {
 
+// ========================= Loss Function: cross-entropy =====================
+// Blog: https://blog.csdn.net/fengbingchun/article/details/122724181
+template<typename _Tp> // y实际值; t预测值; m类别数
+_Tp loss_function_cross_entropy(const _Tp* y, const _Tp* t, int m)
+{
+	_Tp loss = 0.;
+	for (auto i = 0; i < m; ++i)
+		loss += -y[i] * std::log(t[i]);
+
+	return loss;
+}
+
 // ============================ Dropout ================================
 // Blog: https://blog.csdn.net/fengbingchun/article/details/89286485
 template<class T>
