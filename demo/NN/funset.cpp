@@ -5,7 +5,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "perceptron.hpp"
-#include "BP.hpp""
+#include "BP.hpp"
 #include "CNN.hpp"
 #include "linear_regression.hpp"
 #include "naive_bayes_classifier.hpp"
@@ -19,6 +19,18 @@
 #include "kmeans.hpp"
 #include "lrn.hpp"
 #include "batch_normalization.hpp"
+
+// ========================= Logistic Regression: Batch Gradient Descent ====================
+int test_logistic_regression2_bgd()
+{
+	fprintf(stdout,"Warning: first generate test images: execute demo/DatasetToImage/DatasetToImage: MNISTtoImage\n");
+
+	fprintf(stdout, "start train ...\n");
+
+	fprintf(stdout, "start predict ...\n");
+
+	return 0;
+}
 
 // ========================= Batch Normalization ====================
 int test_batch_normalization()

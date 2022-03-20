@@ -13,7 +13,7 @@
 }
 
 template<typename T>
-void generator_real_random_number(T* data, int length, T a = (T)0, T b = (T)1);
+void generator_real_random_number(T* data, int length, T a = (T)0, T b = (T)1, bool default_random = true);
 int compare_file();
 int mat_horizontal_concatenate();
 int save_images(const std::vector<cv::Mat>& src, const std::string& name, int row_image_count);

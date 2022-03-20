@@ -127,14 +127,21 @@ int compare_file(const std::string& name1, const std::string& name2)
 }
 
 template<typename T>
-void generator_real_random_number(T* data, int length, T a, T b)
+void generator_real_random_number(T* data, int length, T a, T b, bool default_random)
 {
-	//std::random_device rd; std::mt19937 generator(rd()); // 每次产生不固定的不同的值
-	std::default_random_engine generator; // 每次产生固定的不同的值
-	std::uniform_real_distribution<T> distribution(a, b);
+	if (default_random) {// 每次产生固定的不同的值
+		std::default_random_engine generator;
 
-	for (int i = 0; i < length; ++i) {
-		data[i] = distribution(generator);
+		std::uniform_real_distribution<T> distribution(a, b);
+		for (int i = 0; i < length; ++i)
+			data[i] = distribution(generator);
+	} else { // 每次产生不固定的不同的值
+		std::random_device rd;
+		std::mt19937 generator(rd());
+
+		std::uniform_real_distribution<T> distribution(a, b);
+		for (int i = 0; i < length; ++i)
+			data[i] = distribution(generator);
 	}
 }
 
@@ -177,8 +184,8 @@ int read_txt_file(const char* name, std::vector<std::vector<T>>& data, const cha
 	return 0;
 }
 
-template void generator_real_random_number<float>(float*, int, float, float);
-template void generator_real_random_number<double>(double*, int, double, double);
+template void generator_real_random_number<float>(float*, int, float, float, bool);
+template void generator_real_random_number<double>(double*, int, double, double, bool);
 //template int read_txt_file<int>(const char*, std::vector<std::vector<int>>&, const char, const int, const int);
 template int read_txt_file<float>(const char*, std::vector<std::vector<float>>&, const char, const int, const int);
 //template int read_txt_file<double>(const char*, std::vector<std::vector<double>>&, const char, const int, const int);

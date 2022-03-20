@@ -1,5 +1,5 @@
 # NN_Test
-**This project contains some neural network code**  
+**This project contains some neural network code**
 **Note: Clone this repository to E:/GitCode/ in windows**
 - neural network code(C++)
 	- Perceptron
@@ -36,7 +36,12 @@
 		- softmax function
 		- tanh(Hyperbolic tangent)
 	- Loss Function
+		- MSE(Mean Square Error)
 		- Cross-Entropy
+	- Optimization
+		- Batch Gradient Descent
+		- Stochastic Gradient Descent
+		- Mini-batch Gradient Descent
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)
@@ -64,7 +69,7 @@
 	- CIFAR10/CIFAR100
 	- ORL Faces Database
 
-**The project support platform:** 
+**The project support platform:**
 - windows7/10 64 bits: It can be directly build with VS2017 in windows7/10 64bits.
 - Linux:
 	- DatasetToImage support cmake build(file position: prj/linux_cmake_DatasetToImage)
@@ -73,7 +78,7 @@
 	- tiny-dnn support cmake build(file position: prj/linux_cmake_tiny-dnn)
 	- NN support cmake build(file position: prj/linux_cmake_NN)
 
-**Windows VS Screenshot:**  
+**Windows VS Screenshot:**
 ![](https://github.com/fengbingchun/NN_Test/blob/master/prj/x86_x64_vc12/Screenshot.png)
 
 

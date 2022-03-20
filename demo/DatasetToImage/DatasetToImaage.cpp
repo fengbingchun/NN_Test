@@ -3,7 +3,7 @@
 
 int main()
 {
-	int ret = ImageToMNIST();
+	int ret = MNISTtoImage();
 
 	if (ret == 0) fprintf(stdout, "====== test success ======\n");
 	else fprintf(stderr, "###### test fail ######\n");
