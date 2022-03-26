@@ -20,15 +20,121 @@
 #include "lrn.hpp"
 #include "batch_normalization.hpp"
 
-// ========================= Logistic Regression: Batch Gradient Descent ====================
-int test_logistic_regression2_bgd()
+// ========================= Logistic Regression: Gradient Descent ====================
+namespace {
+
+int read_images(const std::string& path, int samples_single_class_num, int image_size, std::unique_ptr<ANN::Database>& data)
+{
+	const std::vector<std::string> prefix_name {"0_", "1_"};
+
+	for (int i = 1; i <= samples_single_class_num; ++i) {
+		for (const auto& prefix : prefix_name) {
+			std::string name = std::to_string(i);
+			if (i < 10) {
+				name = "0000" + name;
+			} else if (i < 100) {
+				name = "000" + name;
+			} else if (i < 1000) {
+				name = "00" + name;
+			} else if (i < 10000) {
+				name = "0" + name;
+			}
+			name = path + prefix + name + ".jpg";
+
+			cv::Mat mat = cv::imread(name, 0);
+			if (mat.empty()) {
+				fprintf(stderr, "read image fail: %s\n", name.c_str());
+				return -1;
+			}
+			if (mat.cols * mat.rows != image_size || mat.channels() != 1) {
+				fprintf(stderr, "image size fail: width: %d, height: %d, channels: %d\n", mat.cols, mat.rows, mat.channels());
+				return -1;
+			}
+
+			mat.convertTo(mat, CV_32F);
+			int index = prefix == "0_" ? (i-1)*2+0 : (i-1)*2+1;
+			data->samples[index].resize(image_size);
+			memcpy(data->samples[index].data(), mat.data, image_size*sizeof(float));
+			data->labels[index] = prefix == "0_" ? 0 : 1;
+		}
+	}
+
+	return 0;
+}
+
+}
+
+int test_logistic_regression2_gradient_descent()
 {
 	fprintf(stdout,"Warning: first generate test images: execute demo/DatasetToImage/DatasetToImage: MNISTtoImage\n");
 
+	fprintf(stdout, "load train images ...\n");
+#ifdef _MSC_VER
+	const std::vector<std::string> image_path{ "E:/GitCode/NN_Test/data/tmp/MNIST/train_images/", "E:/GitCode/NN_Test/data/tmp/MNIST/test_images/"};
+	const std::string model{ "E:/GitCode/NN_Test/data/logistic_regression2.model" };
+#else
+	const std::vector<std::string> image_path{ "data/tmp/MNIST/train_images/", "data/tmp/MNIST/test_images/"};
+	const std::string model{ "data/logistic_regression2.model" };
+#endif
+	const int image_size = 28*28;
+	const int samples_single_class_num = 5000;
+	auto data1 = std::make_unique<ANN::Database>();
+	data1->samples.resize(samples_single_class_num*2);
+	data1->labels.resize(samples_single_class_num*2);
+	if (read_images(image_path[0], samples_single_class_num, image_size, data1) == -1) return -1;
+
 	fprintf(stdout, "start train ...\n");
+	ANN::LogisticRegression2 lr;
+	int ret = lr.init(std::move(data1), image_size, 0.00001, 10000);
+	if (ret != 0) {
+		fprintf(stderr, "logistic regression init fail: %d\n", ret);
+		return -1;
+	}
+
+	ret = lr.train(model);
+	if (ret != 0) {
+		fprintf(stderr, "logistic regression train fail: %d\n", ret);
+		return -1;
+	}
 
 	fprintf(stdout, "start predict ...\n");
+	const int test_single_class_num = 900;
+	const std::vector<std::string> prefix_name {"0_", "1_"};
+	ANN::LogisticRegression2 lr2;
+	lr2.load_model(model);
+	int count = 0;
 
+	for (int i = 1; i <= test_single_class_num; ++i) {
+		for (const auto& prefix : prefix_name) {
+			std::string name = std::to_string(i);
+			if (i < 10) {
+				name = "0000" + name;
+			} else if (i < 100) {
+				name = "000" + name;
+			} else if (i < 1000) {
+				name = "00" + name;
+			}
+			name = image_path[1] + prefix + name + ".jpg";
+
+			cv::Mat mat = cv::imread(name, 0);
+			if (mat.empty()) {
+				fprintf(stderr, "read image fail: %s\n", name.c_str());
+				return -1;
+			}
+			if (mat.cols * mat.rows != image_size || mat.channels() != 1) {
+				fprintf(stderr, "image size fail: width: %d, height: %d, channels: %d\n", mat.cols, mat.rows, mat.channels());
+				return -1;
+			}
+
+			mat.convertTo(mat, CV_32F);
+			float probability = lr2.predict((float*)mat.data, image_size);
+			int label = prefix == "0_" ? 0 : 1;
+			if ((probability > 0.5 &&  label == 1) || (probability < 0.5 && label == 0)) ++count;
+		}
+	}
+
+	float correct_rate = count / (test_single_class_num * 2.);
+	fprintf(stdout, "correct rate: %f\n", correct_rate);
 	return 0;
 }
 
@@ -290,12 +396,15 @@ int test_logistic_regression2_train()
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
-	cv::Mat data, labels;
+	const std::vector<std::string> prefix_name{ "0_", "1_" };
+	const int image_size = 28*28;
+	const int samples_single_class_num = 10;
+	auto data = std::make_unique<ANN::Database>();
+	data->samples.resize(samples_single_class_num*2);
+	data->labels.resize(samples_single_class_num*2);
 
 	for (int i = 1; i < 11; ++i) {
-		const std::vector<std::string> label{ "0_", "1_" };
-
-		for (const auto& value : label) {
+		for (const auto& value : prefix_name) {
 			std::string name = std::to_string(i);
 			name = image_path + value + name + ".jpg";
 
@@ -304,23 +413,21 @@ int test_logistic_regression2_train()
 				fprintf(stderr, "read image fail: %s\n", name.c_str());
 				return -1;
 			}
+			if (image.cols*image.rows != image_size) {
+				fprintf(stderr, "image size is not supported: %d, %d\n", image.cols, image.rows);
+				return -1;
+			}
 
-			data.push_back(image.reshape(0, 1));
+			image.convertTo(image, CV_32F);
+			int index = value == "0_" ? (i-1)*2+0 : (i-1)*2+1;
+			data->samples[index].resize(image_size);
+			memcpy(data->samples[index].data(), image.data, image_size*sizeof(float));
+			data->labels[index] = value == "0_" ? 0 : 1;
 		}
 	}
-	data.convertTo(data, CV_32F);
 
-	std::unique_ptr<float[]> tmp(new float[20]);
-	for (int i = 0; i < 20; ++i) {
-		if (i % 2 == 0) tmp[i] = 0.f;
-		else tmp[i] = 1.f;
-	}
-	labels = cv::Mat(20, 1, CV_32FC1, tmp.get());
-
-	ANN::LogisticRegression2<float> lr;
-	const float learning_rate{ 0.00001f };
-	const int iterations{ 1000 };
-	int ret = lr.init((float*)data.data, (float*)labels.data, data.rows, data.cols);
+	ANN::LogisticRegression2 lr;
+	int ret = lr.init(std::move(data), image_size);
 	if (ret != 0) {
 		fprintf(stderr, "logistic regression init fail: %d\n", ret);
 		return -1;
@@ -331,7 +438,6 @@ int test_logistic_regression2_train()
 #else
 	const std::string model{ "data/logistic_regression2.model" };
 #endif
-
 	ret = lr.train(model);
 	if (ret != 0) {
 		fprintf(stderr, "logistic regression train fail: %d\n", ret);
@@ -344,16 +450,30 @@ int test_logistic_regression2_train()
 int test_logistic_regression2_predict()
 {
 #ifdef _MSC_VER
+	const std::string model{ "E:/GitCode/NN_Test/data/logistic_regression2.model" };
+#else
+	const std::string model{ "data/logistic_regression2.model" };
+#endif
+	ANN::LogisticRegression2 lr;
+	int ret = lr.load_model(model);
+	if (ret != 0) {
+		fprintf(stderr, "load logistic regression model fail: %d\n", ret);
+		return -1;
+	}
+
+#ifdef _MSC_VER
 	const std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
-	cv::Mat data, labels, result;
+	const std::vector<std::string> prefix_name{ "0_", "1_" };
+	const int image_size = 28*28;
+	const int samples_single_class_num = 10;
+	std::vector<std::vector<float>> data(samples_single_class_num*2);
+	std::vector<int> labels(samples_single_class_num*2);
 
 	for (int i = 11; i < 21; ++i) {
-		const std::vector<std::string> label{ "0_", "1_" };
-
-		for (const auto& value : label) {
+		for (const auto& value : prefix_name) {
 			std::string name = std::to_string(i);
 			name = image_path + value + name + ".jpg";
 
@@ -362,41 +482,26 @@ int test_logistic_regression2_predict()
 				fprintf(stderr, "read image fail: %s\n", name.c_str());
 				return -1;
 			}
+			if (image.cols*image.rows != image_size) {
+				fprintf(stderr, "image size is not supported: %d, %d\n", image.cols, image.rows);
+				return -1;
+			}
 
-			data.push_back(image.reshape(0, 1));
+			image.convertTo(image, CV_32F);
+			int index = value == "0_" ? (i-11)*2+0 : (i-11)*2+1;
+			data[index].resize(image_size);
+			memcpy(data[index].data(), image.data, image_size*sizeof(float));
+			labels[index] = value == "0_" ? 0 : 1;
 		}
 	}
-	data.convertTo(data, CV_32F);
 
-	std::unique_ptr<int[]> tmp(new int[20]);
-	for (int i = 0; i < 20; ++i) {
-		if (i % 2 == 0) tmp[i] = 0;
-		else tmp[i] = 1;
-	}
-	labels = cv::Mat(20, 1, CV_32SC1, tmp.get());
-
-	CHECK(data.rows == labels.rows);
-
-#ifdef _MSC_VER
-	const std::string model{ "E:/GitCode/NN_Test/data/logistic_regression2.model" };
-#else
-	const std::string model{ "data/logistic_regression2.model" };
-#endif
-
-	ANN::LogisticRegression2<float> lr;
-	int ret = lr.load_model(model);
-	if (ret != 0) {
-		fprintf(stderr, "load logistic regression model fail: %d\n", ret);
-		return -1;
-	}
-
-	for (int i = 0; i < data.rows; ++i) {
-		float probability = lr.predict((float*)(data.row(i).data), data.cols);
+	for (int i = 0; i < samples_single_class_num*2; ++i) {
+		float probability = lr.predict(data[i].data(), image_size);
 
 		fprintf(stdout, "probability: %.6f, ", probability);
 		if (probability > 0.5) fprintf(stdout, "predict result: 1, ");
 		else fprintf(stdout, "predict result: 0, ");
-		fprintf(stdout, "actual result: %d\n", ((int*)(labels.row(i).data))[0]);
+		fprintf(stdout, "actual result: %d\n", labels[i]);
 	}
 
 	return 0;

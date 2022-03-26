@@ -9,7 +9,7 @@
 
 #define CHECK(x) { \
 	if (x) {} \
-	else { fprintf(stderr, "Check Failed: %s, file: %s, line: %d\n", #x, __FILE__, __LINE__); return -1; } \
+	else { fprintf(stderr, "Check Failed: %s, file: %s, line: %d\n", #x, __FILE__, __LINE__); exit(1); } \
 }
 
 template<typename T>

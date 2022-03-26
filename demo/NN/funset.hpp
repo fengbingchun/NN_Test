@@ -1,9 +1,7 @@
 #ifndef FBC_TEST_NN_FUNSET_HPP_
 #define FBC_TEST_NN_FUNSET_HPP_
 
-int test_logistic_regression2_bgd(); // Batch Gradient Descent
-int test_logistic_regression2_sgd(); // Stochastic Gradient Descent
-int test_logistic_regression2_mbgd(); // Mini Batch Gradient Descent
+int test_logistic_regression2_gradient_descent();
 int test_batch_normalization(); // Batch Normalization
 int test_lrn(); // Local Response Normalization
 int test_kmeans();

@@ -7,66 +7,50 @@
 
 namespace ANN {
 
-template<typename T>
-int LogisticRegression2<T>::init(const T* data, const T* labels, int train_num, int feature_length, T learning_rate, int epochs)
+int LogisticRegression2::init(std::unique_ptr<Database> data, int feature_length, float learning_rate, int epochs)
 {
-	if (train_num < 2) {
-		fprintf(stderr, "logistic regression train samples num is too little: %d\n", train_num);
+	CHECK(data->samples.size() == data->labels.size());
+	m_ = data->samples.size();
+	if (m_ < 2) {
+		fprintf(stderr, "logistic regression train samples num is too little: %d\n", m_);
 		return -1;
 	}
 	if (learning_rate <= 0) {
 		fprintf(stderr, "learning rate must be greater 0: %f\n", learning_rate);
 		return -1;
 	}
-	if (epochs <= 0) {
+	if (epochs < 1) {
 		fprintf(stderr, "number of epochs cannot be zero or a negative number: %d\n", epochs);
 		return -1;
 	}
 
 	alpha_ = learning_rate;
 	epochs_ = epochs;
-
-	m_ = train_num;
 	feature_length_ = feature_length;
-
-	x_.resize(m_);
-	y_.resize(m_);
+	data_ = std::move(data);
 	o_.resize(m_);
-
-	for (int i = 0; i < m_; ++i) {
-		const T* p = data + i * feature_length_;
-		x_[i].resize(feature_length_);
-
-		for (int j = 0; j < feature_length_; ++j) {
-			x_[i][j] = p[j];
-		}
-
-		y_[i] = labels[i];
-	}
 
 	return 0;
 }
 
-template<typename T>
-int LogisticRegression2<T>::train(const std::string& model)
+int LogisticRegression2::train(const std::string& model)
 {
-	CHECK(x_.size() == y_.size());
-
-	w_.resize(feature_length_, (T)0.);
-	generator_real_random_number(w_.data(), feature_length_, (T)-0.01f, (T)0.01f, true);
-	generator_real_random_number(&b_, 1, (T)-0.01f, (T)0.01f);
+	w_.resize(feature_length_, 0.);
+	generator_real_random_number(w_.data(), feature_length_, -0.01f, 0.01f, true);
+	generator_real_random_number(&b_, 1, -0.01f, 0.01f);
 
 	for (int iter = 0; iter < epochs_; ++iter) {
 		calculate_gradient_descent();
-		fprintf(stdout, "echoch: %d, cost function: %f\n", iter, calculate_cost_function());
+		auto cost_value = calculate_cost_function();
+		fprintf(stdout, "echoch: %d, cost function: %f\n", iter, cost_value);
+		if (cost_value < error_) break;
 	}
 
 	CHECK(store_model(model) == 0);
 	return 0;
 }
 
-template<typename T>
-int LogisticRegression2<T>::load_model(const std::string& model)
+int LogisticRegression2::load_model(const std::string& model)
 {
 	std::ifstream file;
 	file.open(model.c_str(), std::ios::binary);
@@ -79,19 +63,18 @@ int LogisticRegression2<T>::load_model(const std::string& model)
 	file.read((char*)&length, sizeof(length));
 	w_.resize(length);
 	feature_length_ = length;
-	file.read((char*)w_.data(), sizeof(T)*w_.size());
-	file.read((char*)&b_, sizeof(T));
+	file.read((char*)w_.data(), sizeof(float)*w_.size());
+	file.read((char*)&b_, sizeof(float));
 
 	file.close();
 	return 0;
 }
 
-template<typename T>
-T LogisticRegression2<T>::predict(const T* data, int feature_length) const
+float LogisticRegression2::predict(const float* data, int feature_length) const
 {
 	CHECK(feature_length == feature_length_);
 
-	T value{ (T)0. };
+	float value{0.};
 	for (int t = 0; t < feature_length_; ++t) {
 		value += data[t] * w_[t];
 	}
@@ -100,8 +83,7 @@ T LogisticRegression2<T>::predict(const T* data, int feature_length) const
 	return (calculate_activation_function(value));
 }
 
-template<typename T>
-int LogisticRegression2<T>::store_model(const std::string& model) const
+int LogisticRegression2::store_model(const std::string& model) const
 {
 	std::ofstream file;
 	file.open(model.c_str(), std::ios::binary);
@@ -112,17 +94,16 @@ int LogisticRegression2<T>::store_model(const std::string& model) const
 
 	int length = w_.size();
 	file.write((char*)&length, sizeof(length));
-	file.write((char*)w_.data(), sizeof(T) * w_.size());
-	file.write((char*)&b_, sizeof(T));
+	file.write((char*)w_.data(), sizeof(float) * w_.size());
+	file.write((char*)&b_, sizeof(float));
 
 	file.close();
 	return 0;
 }
 
-template<typename T>
-T LogisticRegression2<T>::calculate_z(const std::vector<T>& feature) const
+float LogisticRegression2::calculate_z(const std::vector<float>& feature) const
 {
-	T z{ 0. };
+	float z{0.};
 	for (int i = 0; i < feature_length_; ++i) {
 		z += w_[i] * feature[i];
 	}
@@ -131,86 +112,80 @@ T LogisticRegression2<T>::calculate_z(const std::vector<T>& feature) const
 	return z;
 }
 
-template<typename T>
-T LogisticRegression2<T>::calculate_cost_function() const
+float LogisticRegression2::calculate_cost_function() const
 {
 	/*// J+=-1/m([y(i)*loga(i)+(1-y(i))*log(1-a(i))])
 	// Note: log0 is not defined
-	T J{0.};
+	float J{0.};
 	for (int i = 0; i < m_; ++i)
-		J += -(y_[i] * std::log(o_[i]) + (1 - y_[i]) * std::log(1 - o_[i]) );
+		J += -(data_->labels[i] * std::log(o_[i]) + (1 - labels[i]) * std::log(1 - o_[i]) );
 	return J/m_;*/
 
-	T J{0.};
+	float J{0.};
 	for (int i = 0; i < m_; ++i)
-		J += 1./2*std::pow(y_[i] - o_[i], 2);
+		J += 1./2*std::pow(data_->labels[i] - o_[i], 2);
 	return J/m_;
 }
 
-template<typename T>
-T LogisticRegression2<T>::calculate_activation_function(T value) const
+float LogisticRegression2::calculate_activation_function(float value) const
 {
 	switch (activation_func_) {
 		case ActivationFunction::Sigmoid:
 		default: // Sigmoid
-			return ((T)1 / ((T)1 + std::exp(-value))); // y = 1/(1+exp(-value))
+			return (1. / (1. + std::exp(-value))); // y = 1/(1+exp(-value))
 	}
 }
 
-template<typename T>
-T LogisticRegression2<T>::calculate_loss_function() const
+float LogisticRegression2::calculate_loss_function() const
 {
 	switch (loss_func_) {
 		case LossFunction::MSE:
 		default: // MSE
-			T value = 0.;
+			float value = 0.;
 			for (int i = 0; i < m_; ++i) {
-				value += 1/2.*std::pow(y_[i] - o_[i], 2);
+				value += 1/2.*std::pow(data_->labels[i] - o_[i], 2);
 			}
 			return value/m_;
 	}
 }
 
-template<typename T>
-T LogisticRegression2<T>::calculate_loss_function_derivative() const
+float LogisticRegression2::calculate_loss_function_derivative() const
 {
 	switch (loss_func_) {
 		case LossFunction::MSE:
 		default: // MSE
-			T value = 0.;
+			float value = 0.;
 			for (int i = 0; i < m_; ++i) {
-				value += o_[i] - y_[i];
+				value += o_[i] - data_->labels[i];
 			}
 			return value/m_;
 	}
 }
 
-template<typename T>
-T LogisticRegression2<T>::calculate_loss_function_derivative(unsigned int index) const
+float LogisticRegression2::calculate_loss_function_derivative(unsigned int index) const
 {
 	switch (loss_func_) {
 		case LossFunction::MSE:
 		default: // MSE
-			return (o_[index] - y_[index]);
+			return (o_[index] - data_->labels[index]);
 	}
 }
 
-template<typename T>
-void LogisticRegression2<T>::calculate_gradient_descent()
+void LogisticRegression2::calculate_gradient_descent()
 {
 	switch (optim_) {
 		case Optimzation::BGD:
 		default: // BGD
-			T db = (T)0.;
-			std::vector<T> dw(feature_length_, (T)0.), z(m_, (T)0), dz(m_, (T)0);
+			float db = 0.;
+			std::vector<float> dw(feature_length_, 0.), z(m_, 0), dz(m_, 0);
 
 			for (int i = 0; i < m_; ++i) {
-				z[i] = calculate_z(x_[i]);
+				z[i] = calculate_z(data_->samples[i]);
 				o_[i] = calculate_activation_function(z[i]);
 				dz[i] = calculate_loss_function_derivative(i);
 
 				for (int j = 0; j < feature_length_; ++j) {
-					dw[j] += x_[i][j] * dz[i]; // dw(i)+=x(i)(j)*dz(i)
+					dw[j] += data_->samples[i][j] * dz[i]; // dw(i)+=x(i)(j)*dz(i)
 				}
 				db += dz[i]; // db+=dz(i)
 			}
@@ -223,9 +198,6 @@ void LogisticRegression2<T>::calculate_gradient_descent()
 			b_ -= alpha_*(db/m_);
 	}
 }
-
-template class LogisticRegression2<float>;
-template class LogisticRegression2<double>;
 
 } // namespace ANN
 
