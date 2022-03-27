@@ -5,7 +5,7 @@
 
 int main()
 {
-	int ret = test_logistic_regression2_gradient_descent();
+	int ret = test_batch_normalization();
 
 	if (ret == 0) fprintf(stdout, "========== test success ==========\n");
 	else fprintf(stderr, "########## test fail ##########\n");

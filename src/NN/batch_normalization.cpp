@@ -17,53 +17,44 @@ int BatchNorm::LoadData(const float* data, int length)
 
 std::unique_ptr<float[]> BatchNorm::Run()
 {
-	mean_.resize(channels_ * height_ * width_);
-	memset(mean_.data(), 0, mean_.size() * sizeof(float));
-
+	int spatial_size = height_ * width_;
 	for (int n = 0; n < number_; ++n) {
-		const float* p = data_.data() + n * (channels_ * height_ * width_);
+		int offset = n * (channels_ * spatial_size);
 		for (int c = 0; c < channels_; ++c) {
-			for (int h = 0; h < height_; ++h) {
-				for (int w = 0; w < width_; ++w) {
-					mean_[c * height_ * width_ + h * width_ + w] += p[c * height_ * width_ + h * width_ + w];
-				}
+			const float* p = data_.data() + offset + (c * spatial_size);
+			for (int k = 0; k < spatial_size; ++k) {
+				mean_[c] += *p++;
 			}
 		}
 	}
 
-	for (int len = 0; len < channels_ * height_ * width_; ++len) {
-		mean_[len] /= number_;
-	}
-
-	variance_.resize(channels_ * height_ * width_);
-	memset(variance_.data(), 0, variance_.size() * sizeof(float));
+	std::transform(mean_.begin(), mean_.end(), mean_.begin(), [=](float_t x) { return x / (number_ * spatial_size); });
 
 	for (int n = 0; n < number_; ++n) {
-		const float* p = data_.data() + n * (channels_ * height_ * width_);
+		int offset = n * (channels_ * spatial_size);
 		for (int c = 0; c < channels_; ++c) {
-			for (int h = 0; h < height_; ++h) {
-				for (int w = 0; w < width_; ++w) {
-					variance_[c * height_ * width_ + h * width_ + w] += std::pow(p[c * height_ * width_ + h * width_ + w] - mean_[c * height_ * width_ + h * width_ + w], 2.);
-				}
+			const float* p = data_.data() + offset + (c * spatial_size);
+			for (int k = 0; k < spatial_size; ++k) {
+				variance_[c] += std::pow(*p++ - mean_[c], 2.);
 			}
 		}
 	}
 
-	for (int len = 0; len < channels_ * height_ * width_; ++len) {
-		variance_[len] /= number_;
+	std::transform(variance_.begin(), variance_.end(), variance_.begin(), [=](float_t x) { return x / (std::max(1., number_*spatial_size*1.)); });
+
+	std::vector<float> stddev(channels_);
+	for (int c = 0; c < channels_; ++c) {
+		stddev[c] = std::sqrt(variance_[c] + epsilon_);
 	}
 
-	std::unique_ptr<float[]> output(new float[number_ * channels_ * height_ * width_]);
+	std::unique_ptr<float[]> output(new float[number_ * channels_ * spatial_size]);
 	for (int n = 0; n < number_; ++n) {
-		const float* p1 = data_.data() + n * (channels_ * height_ * width_);
-		float* p2 = output.get() + n * (channels_ * height_ * width_);
+		const float* p1 = data_.data() + n * (channels_ * spatial_size);
+		float* p2 = output.get() + n * (channels_ * spatial_size);
 
 		for (int c = 0; c < channels_; ++c) {
-			for (int h = 0; h < height_; ++h) {
-				for (int w = 0; w < width_; ++w) {
-					p2[c * height_ * width_ + h * width_ + w] = (p1[c * height_ * width_ + h * width_ + w] - mean_[c * height_ * width_ + h * width_ + w]) /
-						std::sqrt(variance_[c * height_ * width_ + h * width_ + w] + epsilon_);
-				}
+			for (int k = 0; k < spatial_size; ++k) {
+				*p2++ = (*p1++ - mean_[c]) / stddev[c];
 			}
 		}
 	}
