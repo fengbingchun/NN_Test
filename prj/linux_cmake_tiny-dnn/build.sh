@@ -11,10 +11,14 @@ fi
 
 cifar100_path=${dir_name}/./../../${data_dir}/database/CIFAR/CIFAR-100
 echo "cifar100_path: ${cifar100_path}"
-cd ${cifar100_path}
-7za -y x "*.7z.*"
-
-cd -
+if [[ -e ${cifar100_path}/train.bin ]]; then
+	echo "cifar100 has already unpacked"
+else
+	echo "cifar100 starts to decompress"
+	cd ${cifar100_path}
+	7za -y x "*.7z.*"
+	cd -
+fi
 
 ln -s ${dir_name}/./../../${data_dir} ${dir_name}
 

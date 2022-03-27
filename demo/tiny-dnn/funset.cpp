@@ -3,8 +3,45 @@
 #include <algorithm>
 #include "tiny_dnn/tiny_dnn.h"
 
-// Blog: http://blog.csdn.net/fengbingchun/article/details/53453931
+// Blog: https://blog.csdn.net/fengbingchun/article/details/118959997
+int test_dnn_batch_normalization()
+{
+	const std::vector<float> data = { 11.1, -2.2, 23.3, 54.4, 58.5, -16.6,
+								-97.7, -28.8, 49.9, -61.3, 52.6, -33.9,
+								-2.45, -15.7, 72.4, 9.1, 47.2, 21.7 };
+	const int number = 3, channels = 1, height = 1, width = 6;
+	const int spatial_size = height * width;
 
+	tiny_dnn::tensor_t in_data(number), out_data(number);
+	for (int n = 0; n < number; ++n) {
+		in_data[n].resize(spatial_size * channels);
+		out_data[n].resize(spatial_size * channels);
+
+		int offset = n * (spatial_size * channels);
+		memcpy(in_data[n].data(), data.data() + offset, sizeof(float)*spatial_size*channels);
+		std::fill(out_data[n].begin(), out_data[n].end(), 0.);
+	}
+
+	std::vector<tiny_dnn::tensor_t*> in(1), out(1);
+	in[0] = &in_data;
+	out[0] = &out_data;
+
+	tiny_dnn::batch_normalization_layer bn(spatial_size, channels);
+	bn.forward_propagation(in, out);
+
+	fprintf(stdout, "tiny_dnn result:\n");
+	for (int n = 0; n < number; ++n) {
+		for (int s = 0; s < spatial_size * channels; ++s)
+			fprintf(stdout, "%f  ", out_data[n][s]);
+		fprintf(stdout, "\n");
+	}
+
+	return 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Blog: http://blog.csdn.net/fengbingchun/article/details/53453931
 static void construct_net(tiny_dnn::network<tiny_dnn::sequential>& nn)
 {
 	// connection table [Y.Lecun, 1998 Table.1]
