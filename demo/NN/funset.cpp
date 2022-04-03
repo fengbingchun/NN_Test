@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <algorithm>
+#include <chrono>
 #include <opencv2/opencv.hpp>
 
 #include "perceptron.hpp"
@@ -62,7 +64,7 @@ int read_images(const std::string& path, int samples_single_class_num, int image
 	return 0;
 }
 
-}
+} // namespace
 
 int test_logistic_regression2_gradient_descent()
 {
@@ -84,8 +86,12 @@ int test_logistic_regression2_gradient_descent()
 	if (read_images(image_path[0], samples_single_class_num, image_size, data1) == -1) return -1;
 
 	fprintf(stdout, "start train ...\n");
-	ANN::LogisticRegression2 lr;
-	int ret = lr.init(std::move(data1), image_size, 0.00001, 10000);
+	auto start = std::chrono::steady_clock::now();
+	//ANN::LogisticRegression2 lr(ANN::Optimization::BGD, samples_single_class_num * 2); // Batch Gradient Descent, epochs = 10000, correct rete: 0.997778
+	ANN::LogisticRegression2 lr(ANN::Optimization::SGD, 1); // Stochastic Gradient Descent,  epochs = 5, correct rete: 0.998889
+	//ANN::LogisticRegression2 lr(ANN::Optimization::MBGD, 128); // Mini-batch Gradient Descent,  epochs = 100, correct rete: 0.997778
+	lr.set_error(0.0002);
+	int ret = lr.init(std::move(data1), image_size, 0.00001, 5);
 	if (ret != 0) {
 		fprintf(stderr, "logistic regression init fail: %d\n", ret);
 		return -1;
@@ -96,6 +102,8 @@ int test_logistic_regression2_gradient_descent()
 		fprintf(stderr, "logistic regression train fail: %d\n", ret);
 		return -1;
 	}
+	auto end = std::chrono::steady_clock::now();
+	fprintf(stdout, "train elapsed time: %d seconds\n", std::chrono::duration_cast<std::chrono::seconds>(end - start).count());
 
 	fprintf(stdout, "start predict ...\n");
 	const int test_single_class_num = 900;

@@ -29,7 +29,6 @@ int LogisticRegression2::init(std::unique_ptr<Database> data, int feature_length
 	feature_length_ = feature_length;
 	data_ = std::move(data);
 	o_.resize(m_);
-
 	return 0;
 }
 
@@ -39,11 +38,38 @@ int LogisticRegression2::train(const std::string& model)
 	generator_real_random_number(w_.data(), feature_length_, -0.01f, 0.01f, true);
 	generator_real_random_number(&b_, 1, -0.01f, 0.01f);
 
-	for (int iter = 0; iter < epochs_; ++iter) {
-		calculate_gradient_descent();
-		auto cost_value = calculate_cost_function();
-		fprintf(stdout, "echoch: %d, cost function: %f\n", iter, cost_value);
-		if (cost_value < error_) break;
+	if (optim_ == Optimization::BGD) {
+		for (int iter = 0; iter < epochs_; ++iter) {
+			calculate_gradient_descent();
+			auto cost_value = calculate_cost_function();
+			fprintf(stdout, "epochs: %d, cost function: %f\n", iter, cost_value);
+			if (cost_value < error_) break;
+		}
+	} else {
+		random_shuffle_.resize(data_->samples.size(), 0);
+		for (int i = 0; i < data_->samples.size(); ++i)
+			random_shuffle_[i] = i;
+
+		float cost_value = 0.;
+		for (int iter = 0; iter < epochs_; ++iter) {
+			std::srand(unsigned(std::time(0)));
+			std::random_shuffle(random_shuffle_.begin(), random_shuffle_.end(), generate_random);
+
+			int loop = (m_ + batch_size_ - 1) / batch_size_;
+			for (int i = 0; i < loop; ++i) {
+				int start = i * batch_size_;
+				int end = start + batch_size_ > m_ ? m_ : start + batch_size_;
+				calculate_gradient_descent(start, end);
+
+				for (int i = 0; i < m_; ++i)
+					o_[i] = calculate_activation_function(calculate_z(data_->samples[i]));
+
+				cost_value = calculate_cost_function();
+				fprintf(stdout, "epochs: %d, loop: %d, cost function: %f\n", iter, i, cost_value);
+				if (cost_value < error_) break;
+			}
+			if (cost_value < error_) break;
+		}
 	}
 
 	CHECK(store_model(model) == 0);
@@ -162,27 +188,50 @@ float LogisticRegression2::calculate_loss_function_derivative() const
 	}
 }
 
-float LogisticRegression2::calculate_loss_function_derivative(unsigned int index) const
+float LogisticRegression2::calculate_loss_function_derivative(float predictive_value, float true_value) const
 {
 	switch (loss_func_) {
 		case LossFunction::MSE:
 		default: // MSE
-			return (o_[index] - data_->labels[index]);
+			return (predictive_value - true_value);
 	}
 }
 
-void LogisticRegression2::calculate_gradient_descent()
+void LogisticRegression2::calculate_gradient_descent(int start, int end)
 {
-	switch (optim_) {
-		case Optimzation::BGD:
-		default: // BGD
-			float db = 0.;
-			std::vector<float> dw(feature_length_, 0.), z(m_, 0), dz(m_, 0);
+	float db = 0.;
+	std::vector<float> dw(feature_length_, 0.);
 
+	switch (optim_) {
+		case Optimization::SGD:
+		case Optimization::MBGD: {
+			int len = end - start;
+			std::vector<float> z(len, 0), dz(len, 0);
+			for (int i = start, x = 0; i < end; ++i, ++x) {
+				z[x] = calculate_z(data_->samples[random_shuffle_[i]]);
+				dz[x] = calculate_loss_function_derivative(calculate_activation_function(z[x]), data_->labels[random_shuffle_[i]]);
+
+				for (int j = 0; j < feature_length_; ++j) {
+					dw[j] += data_->samples[random_shuffle_[i]][j] * dz[x]; // dw(i)+=x(i)(j)*dz(i)
+				}
+				db += dz[x]; // db+=dz(i)
+			}
+
+			for (int j = 0; j < feature_length_; ++j) {
+				dw[j] /= len;
+				w_[j] -= alpha_ * dw[j];
+			}
+
+			b_ -= alpha_*(db/len);
+		}
+			break;
+		case Optimization::BGD:
+		default: // BGD
+			std::vector<float> z(m_, 0), dz(m_, 0);
 			for (int i = 0; i < m_; ++i) {
 				z[i] = calculate_z(data_->samples[i]);
 				o_[i] = calculate_activation_function(z[i]);
-				dz[i] = calculate_loss_function_derivative(i);
+				dz[i] = calculate_loss_function_derivative(o_[i], data_->labels[i]);
 
 				for (int j = 0; j < feature_length_; ++j) {
 					dw[j] += data_->samples[i][j] * dz[i]; // dw(i)+=x(i)(j)*dz(i)
