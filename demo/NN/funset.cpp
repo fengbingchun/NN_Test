@@ -88,10 +88,10 @@ int test_logistic_regression2_gradient_descent()
 	fprintf(stdout, "start train ...\n");
 	auto start = std::chrono::steady_clock::now();
 	//ANN::LogisticRegression2 lr(ANN::Optimization::BGD, samples_single_class_num * 2); // Batch Gradient Descent, epochs = 10000, correct rete: 0.997778
-	ANN::LogisticRegression2 lr(ANN::Optimization::SGD, 1); // Stochastic Gradient Descent,  epochs = 5, correct rete: 0.998889
-	//ANN::LogisticRegression2 lr(ANN::Optimization::MBGD, 128); // Mini-batch Gradient Descent,  epochs = 100, correct rete: 0.997778
+	//ANN::LogisticRegression2 lr(ANN::Optimization::SGD, 1); // Stochastic Gradient Descent,  epochs = 5, correct rete: 0.998889
+	ANN::LogisticRegression2 lr(ANN::Optimization::MBGD, 128); // Mini-batch Gradient Descent,  epochs = 100, correct rete: 0.997778
 	lr.set_error(0.0002);
-	int ret = lr.init(std::move(data1), image_size, 0.00001, 5);
+	int ret = lr.init(std::move(data1), image_size, 0.00001, 100);
 	if (ret != 0) {
 		fprintf(stderr, "logistic regression init fail: %d\n", ret);
 		return -1;
