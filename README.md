@@ -39,9 +39,10 @@
 		- MSE(Mean Square Error)
 		- Cross-Entropy
 	- Optimization
-		- Batch Gradient Descent
-		- Stochastic Gradient Descent
-		- Mini-batch Gradient Descent
+		- Batch Gradient Descent(BGD)
+		- Stochastic Gradient Descent(SGD)
+		- Mini-batch Gradient Descent(MBGD)
+		- SGD with Momentum
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)

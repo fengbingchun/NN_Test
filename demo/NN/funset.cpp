@@ -85,13 +85,22 @@ int test_logistic_regression2_gradient_descent()
 	data1->labels.resize(samples_single_class_num*2);
 	if (read_images(image_path[0], samples_single_class_num, image_size, data1) == -1) return -1;
 
+	ANN::Optimization optim = ANN::Optimization::SGD_Momentum;
+	int batch_size = 128;
+	float learning_rate = 0.0001;
+	int epochs = 100;
+	float error = 0.00002;
+	float mu = 0.7;
+	fprintf(stdout, "optimization method: %d, batch size: %d, learning rate: %f, epochs: %d, error: %f, mu: %f\n",
+			optim, batch_size, learning_rate, epochs, error, mu);
+
 	fprintf(stdout, "start train ...\n");
 	auto start = std::chrono::steady_clock::now();
 	//ANN::LogisticRegression2 lr(ANN::Optimization::BGD, samples_single_class_num * 2); // Batch Gradient Descent, epochs = 10000, correct rete: 0.997778
-	//ANN::LogisticRegression2 lr(ANN::Optimization::SGD, 1); // Stochastic Gradient Descent,  epochs = 5, correct rete: 0.998889
-	ANN::LogisticRegression2 lr(ANN::Optimization::MBGD, 128); // Mini-batch Gradient Descent,  epochs = 100, correct rete: 0.997778
-	lr.set_error(0.0002);
-	int ret = lr.init(std::move(data1), image_size, 0.00001, 100);
+	ANN::LogisticRegression2 lr(optim, batch_size);
+	lr.set_error(error);
+	lr.set_mu(mu);
+	int ret = lr.init(std::move(data1), image_size, learning_rate, epochs);
 	if (ret != 0) {
 		fprintf(stderr, "logistic regression init fail: %d\n", ret);
 		return -1;

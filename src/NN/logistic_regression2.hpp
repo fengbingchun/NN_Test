@@ -6,6 +6,7 @@
 	https://blog.csdn.net/fengbingchun/article/details/123616784
 	https://blog.csdn.net/fengbingchun/article/details/123944097
 	https://blog.csdn.net/fengbingchun/article/details/123955067
+	https://blog.csdn.net/fengbingchun/article/details/124648766
 */
 
 #include <cstdlib>
@@ -27,7 +28,8 @@ enum class LossFunction {
 enum class Optimization {
 	BGD, // Batch Gradient Descent
 	SGD, // Stochastic Gradient Descent
-	MBGD // Mini-batch Gradient Descent
+	MBGD, // Mini-batch Gradient Descent
+	SGD_Momentum // SGD with Momentum
 };
 
 struct Database {
@@ -44,6 +46,7 @@ public:
 	int load_model(const std::string& model);
 	float predict(const float* data, int feature_length) const; // y = 1/(1+exp(-(wx+b)))
 	void set_error(float error) { error_ = error; }
+	void set_mu(float mu) { mu_ = mu; }
 
 private:
 	int store_model(const std::string& model) const;
@@ -67,7 +70,8 @@ private:
 	std::vector<float> w_; // weights
 	float b_ = 0.; // threshold
 	float error_ = 0.00001;
-	int batch_size_ = 1;
+	int batch_size_ = 1; // batch size
+	float mu_ = 0.9;
 
 	ActivationFunction activation_func_ = ActivationFunction::Sigmoid;
 	LossFunction loss_func_ = LossFunction::MSE;

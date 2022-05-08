@@ -129,7 +129,7 @@ int compare_file(const std::string& name1, const std::string& name2)
 template<typename T>
 void generator_real_random_number(T* data, int length, T a, T b, bool default_random)
 {
-	if (default_random) {// 每次产生固定的不同的值
+	if (default_random) { // 每次产生固定的不同的值
 		std::default_random_engine generator;
 
 		std::uniform_real_distribution<T> distribution(a, b);
