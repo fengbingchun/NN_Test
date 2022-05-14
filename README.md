@@ -43,6 +43,7 @@
 		- Stochastic Gradient Descent(SGD)
 		- Mini-batch Gradient Descent(MBGD)
 		- SGD with Momentum
+		- Adaptive Gradient(AdaGrad)
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)

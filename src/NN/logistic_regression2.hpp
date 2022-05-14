@@ -7,6 +7,7 @@
 	https://blog.csdn.net/fengbingchun/article/details/123944097
 	https://blog.csdn.net/fengbingchun/article/details/123955067
 	https://blog.csdn.net/fengbingchun/article/details/124648766
+	https://blog.csdn.net/fengbingchun/article/details/124766283
 */
 
 #include <cstdlib>
@@ -29,7 +30,8 @@ enum class Optimization {
 	BGD, // Batch Gradient Descent
 	SGD, // Stochastic Gradient Descent
 	MBGD, // Mini-batch Gradient Descent
-	SGD_Momentum // SGD with Momentum
+	SGD_Momentum, // SGD with Momentum
+	AdaGrad // Adaptive Gradient
 };
 
 struct Database {
@@ -72,6 +74,7 @@ private:
 	float error_ = 0.00001;
 	int batch_size_ = 1; // batch size
 	float mu_ = 0.9;
+	float eps_ = 1e-8;
 
 	ActivationFunction activation_func_ = ActivationFunction::Sigmoid;
 	LossFunction loss_func_ = LossFunction::MSE;
