@@ -44,6 +44,7 @@
 		- Mini-batch Gradient Descent(MBGD)
 		- SGD with Momentum
 		- Adaptive Gradient(AdaGrad)
+		- Root Mean Square Propagation(RMSProp)
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)

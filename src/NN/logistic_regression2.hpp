@@ -8,6 +8,7 @@
 	https://blog.csdn.net/fengbingchun/article/details/123955067
 	https://blog.csdn.net/fengbingchun/article/details/124648766
 	https://blog.csdn.net/fengbingchun/article/details/124766283
+	https://blog.csdn.net/fengbingchun/article/details/124896898
 */
 
 #include <cstdlib>
@@ -31,7 +32,8 @@ enum class Optimization {
 	SGD, // Stochastic Gradient Descent
 	MBGD, // Mini-batch Gradient Descent
 	SGD_Momentum, // SGD with Momentum
-	AdaGrad // Adaptive Gradient
+	AdaGrad, // Adaptive Gradient
+	RMSProp // Root Mean Square Propagation
 };
 
 struct Database {
@@ -49,6 +51,7 @@ public:
 	float predict(const float* data, int feature_length) const; // y = 1/(1+exp(-(wx+b)))
 	void set_error(float error) { error_ = error; }
 	void set_mu(float mu) { mu_ = mu; }
+	void set_eps(float eps) { eps_ = eps; }
 
 private:
 	int store_model(const std::string& model) const;

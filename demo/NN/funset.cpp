@@ -87,18 +87,21 @@ int test_logistic_regression2_gradient_descent()
 
 	ANN::Optimization optim = ANN::Optimization::AdaGrad;
 	int batch_size = 128;
-	float learning_rate = 0.01;
+	float learning_rate = 0.001; // Adadelta don't need to set
 	int epochs = 100;
 	float error = 0.00002;
-	fprintf(stdout, "optimization method: %d, batch size: %d, learning rate: %f, epochs: %d, error: %f\n",
-			optim, batch_size, learning_rate, epochs, error);
+	float mu = 0.9; // SGD_Momentum/RMSprop need to set
+	float eps = 1e-8; // Adadelta need to set
+	fprintf(stdout, "optimization method: %d, batch size: %d, learning rate: %f, epochs: %d, eps: %f, error: %f\n",
+			optim, batch_size, learning_rate, epochs, eps, error);
 
 	fprintf(stdout, "start train ...\n");
 	auto start = std::chrono::steady_clock::now();
 	//ANN::LogisticRegression2 lr(ANN::Optimization::BGD, samples_single_class_num * 2); // Batch Gradient Descent, epochs = 10000, correct rete: 0.997778
 	ANN::LogisticRegression2 lr(optim, batch_size);
 	lr.set_error(error);
-	//lr.set_mu(mu); // SGD_Momentum need to set
+	lr.set_mu(mu); // SGD_Momentum/RMSprop need to set
+	lr.set_eps(eps); // Adadelta need to set
 	int ret = lr.init(std::move(data1), image_size, learning_rate, epochs);
 	if (ret != 0) {
 		fprintf(stderr, "logistic regression init fail: %d\n", ret);

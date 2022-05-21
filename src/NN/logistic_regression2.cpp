@@ -204,6 +204,24 @@ float LogisticRegression2::calculate_loss_function_derivative(float predictive_v
 void LogisticRegression2::calculate_gradient_descent(int start, int end)
 {
 	switch (optim_) {
+		case Optimization::RMSProp: {
+			int len = end - start;
+			std::vector<float> g(feature_length_, 0.);
+			std::vector<float> z(len, 0), dz(len, 0);
+			for (int i = start, x = 0; i < end; ++i, ++x) {
+				z[x] = calculate_z(data_->samples[random_shuffle_[i]]);
+				dz[x] = calculate_loss_function_derivative(calculate_activation_function(z[x]), data_->labels[random_shuffle_[i]]);
+
+				for (int j = 0; j < feature_length_; ++j) {
+					float dw = data_->samples[random_shuffle_[i]][j] * dz[x];
+					g[j] = mu_ * g[j] + (1. - mu_) * (dw * dw);
+					w_[j] = w_[j] - alpha_ * dw / (std::sqrt(g[j]) + eps_);
+				}
+
+				b_ -= (alpha_ * dz[x]);
+			}
+		}
+			break;
 		case Optimization::AdaGrad: {
 			int len = end - start;
 			std::vector<float> g(feature_length_, 0.);
