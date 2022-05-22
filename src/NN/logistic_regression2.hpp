@@ -9,6 +9,7 @@
 	https://blog.csdn.net/fengbingchun/article/details/124648766
 	https://blog.csdn.net/fengbingchun/article/details/124766283
 	https://blog.csdn.net/fengbingchun/article/details/124896898
+	https://blog.csdn.net/fengbingchun/article/details/124909910
 */
 
 #include <cstdlib>
@@ -33,7 +34,8 @@ enum class Optimization {
 	MBGD, // Mini-batch Gradient Descent
 	SGD_Momentum, // SGD with Momentum
 	AdaGrad, // Adaptive Gradient
-	RMSProp // Root Mean Square Propagation
+	RMSProp, // Root Mean Square Propagation
+	Adadelta // an adaptive learning rate method
 };
 
 struct Database {

@@ -45,6 +45,7 @@
 		- SGD with Momentum
 		- Adaptive Gradient(AdaGrad)
 		- Root Mean Square Propagation(RMSProp)
+		- Adadelta(an adaptive learning rate method)
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)

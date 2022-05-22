@@ -85,13 +85,13 @@ int test_logistic_regression2_gradient_descent()
 	data1->labels.resize(samples_single_class_num*2);
 	if (read_images(image_path[0], samples_single_class_num, image_size, data1) == -1) return -1;
 
-	ANN::Optimization optim = ANN::Optimization::AdaGrad;
+	ANN::Optimization optim = ANN::Optimization::Adadelta;
 	int batch_size = 128;
-	float learning_rate = 0.001; // Adadelta don't need to set
+	float learning_rate = 0.01; // Adadelta don't need to set
 	int epochs = 100;
 	float error = 0.00002;
 	float mu = 0.9; // SGD_Momentum/RMSprop need to set
-	float eps = 1e-8; // Adadelta need to set
+	float eps = 1e-3; // Adadelta need to set
 	fprintf(stdout, "optimization method: %d, batch size: %d, learning rate: %f, epochs: %d, eps: %f, error: %f\n",
 			optim, batch_size, learning_rate, epochs, eps, error);
 
