@@ -39,13 +39,14 @@
 		- MSE(Mean Square Error)
 		- Cross-Entropy
 	- Optimization
-		- Batch Gradient Descent(BGD)
-		- Stochastic Gradient Descent(SGD)
-		- Mini-batch Gradient Descent(MBGD)
+		- BGD(Batch Gradient Descent)
+		- SGD(Stochastic Gradient Descent)
+		- MBGD(Mini-batch Gradient Descent)
 		- SGD with Momentum
-		- Adaptive Gradient(AdaGrad)
-		- Root Mean Square Propagation(RMSProp)
+		- AdaGrad(Adaptive Gradient)
+		- RMSProp(Root Mean Square Propagation)
 		- Adadelta(an adaptive learning rate method)
+		- Adam(Adaptive Moment Estimation)
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)

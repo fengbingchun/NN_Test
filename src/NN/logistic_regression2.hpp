@@ -10,6 +10,7 @@
 	https://blog.csdn.net/fengbingchun/article/details/124766283
 	https://blog.csdn.net/fengbingchun/article/details/124896898
 	https://blog.csdn.net/fengbingchun/article/details/124909910
+	https://blog.csdn.net/fengbingchun/article/details/125018001
 */
 
 #include <cstdlib>
@@ -35,7 +36,8 @@ enum class Optimization {
 	SGD_Momentum, // SGD with Momentum
 	AdaGrad, // Adaptive Gradient
 	RMSProp, // Root Mean Square Propagation
-	Adadelta // an adaptive learning rate method
+	Adadelta, // an adaptive learning rate method
+	Adam // Adaptive Moment Estimation
 };
 
 struct Database {
@@ -54,6 +56,8 @@ public:
 	void set_error(float error) { error_ = error; }
 	void set_mu(float mu) { mu_ = mu; }
 	void set_eps(float eps) { eps_ = eps; }
+	void set_beta1(float beta1) { beta1_ = beta1; }
+	void set_beta2(float beta2) { beta2_ = beta2; }
 
 private:
 	int store_model(const std::string& model) const;
@@ -80,6 +84,8 @@ private:
 	int batch_size_ = 1; // batch size
 	float mu_ = 0.9;
 	float eps_ = 1e-8;
+	float beta1_ = 0.9;
+	float beta2_ = 0.999;
 
 	ActivationFunction activation_func_ = ActivationFunction::Sigmoid;
 	LossFunction loss_func_ = LossFunction::MSE;
