@@ -204,6 +204,34 @@ float LogisticRegression2::calculate_loss_function_derivative(float predictive_v
 void LogisticRegression2::calculate_gradient_descent(int start, int end)
 {
 	switch (optim_) {
+		case Optimization::AdaMax: {
+			int len = end - start;
+			std::vector<float> m(feature_length_, 0.), u(feature_length_, 1e-8), mhat(feature_length_, 0.);
+			std::vector<float> z(len, 0.), dz(len, 0.);
+			float beta1t = 1.;
+			for (int i = start, x = 0; i < end; ++i, ++x) {
+				z[x] = calculate_z(data_->samples[random_shuffle_[i]]);
+				dz[x] = calculate_loss_function_derivative(calculate_activation_function(z[x]), data_->labels[random_shuffle_[i]]);
+
+				beta1t *= beta1_;
+
+				for (int j = 0; j < feature_length_; ++j) {
+					float dw = data_->samples[random_shuffle_[i]][j] * dz[x];
+					m[j] = beta1_ * m[j] + (1. - beta1_) * dw; // formula 19
+					u[j] = std::max(beta2_ * u[j], std::fabs(dw)); // formula 24
+
+					mhat[j] = m[j] / (1. - beta1t); // formula 20
+
+					// Note: need to ensure than u[j] cannot be 0.
+					// (1). u[j] is initialized to 1e-8, or
+					// (2). if u[j] is initialized to 0., then u[j] adjusts to (u[j] + 1e-8)
+					w_[j] = w_[j] - alpha_ * mhat[j] / u[j]; // formula 25
+				}
+
+				b_ -= (alpha_ * dz[x]);
+			}
+		}
+			break;
 		case Optimization::Adam: {
 			int len = end - start;
 			std::vector<float> m(feature_length_, 0.), v(feature_length_, 0.), mhat(feature_length_, 0.), vhat(feature_length_, 0.);

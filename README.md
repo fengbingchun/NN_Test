@@ -47,6 +47,7 @@
 		- RMSProp(Root Mean Square Propagation)
 		- Adadelta(an adaptive learning rate method)
 		- Adam(Adaptive Moment Estimation)
+		- AdaMax(a variant of Adam based on the infinity norm)
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)

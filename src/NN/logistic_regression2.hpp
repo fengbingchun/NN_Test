@@ -11,6 +11,7 @@
 	https://blog.csdn.net/fengbingchun/article/details/124896898
 	https://blog.csdn.net/fengbingchun/article/details/124909910
 	https://blog.csdn.net/fengbingchun/article/details/125018001
+	https://blog.csdn.net/fengbingchun/article/details/125032562
 */
 
 #include <cstdlib>
@@ -37,8 +38,25 @@ enum class Optimization {
 	AdaGrad, // Adaptive Gradient
 	RMSProp, // Root Mean Square Propagation
 	Adadelta, // an adaptive learning rate method
-	Adam // Adaptive Moment Estimation
+	Adam, // Adaptive Moment Estimation
+	AdaMax // a variant of Adam based on the infinity norm
 };
+
+inline char* enum_to_string(Optimization optim)
+{
+	switch(optim) {
+		case Optimization::BGD: return "BGD";
+		case Optimization::SGD: return "SGD";
+		case Optimization::MBGD: return "MBGD";
+		case Optimization::SGD_Momentum: return "SGD_Momentum";
+		case Optimization::AdaGrad: return "AdaGrad";
+		case Optimization::RMSProp: return "RMSProp";
+		case Optimization::Adadelta: return "Adadelta";
+		case Optimization::Adam: return "Adam";
+		case Optimization::AdaMax: return "AdaMax";
+		default: return "Invalid optim";
+	}
+}
 
 struct Database {
 	Database() = default;
