@@ -85,13 +85,13 @@ int test_logistic_regression2_gradient_descent()
 	data1->labels.resize(samples_single_class_num*2);
 	if (read_images(image_path[0], samples_single_class_num, image_size, data1) == -1) return -1;
 
-	ANN::Optimization optim = ANN::Optimization::AdaMax;
+	ANN::Optimization optim = ANN::Optimization::NAG;
 	int batch_size = 128;
-	float learning_rate = 0.002; // Adadelta don't need to set
+	float learning_rate = 0.01; // Adadelta don't need to set
 	int epochs = 100;
 	float error = 0.00002;
-	float mu = 0.9; // SGD_Momentum/RMSprop need to set
-	float eps = 1e-8; // Adadelta need to set
+	float mu = 0.7; // SGD_Momentum/RMSprop/NAG need to set
+	float eps = 1e-3; // Adadelta need to set
 	float beta1 = 0.9, beta2 = 0.999; // Adam/AdaMax need to set
 	fprintf(stdout, "optimization method: %s, batch size: %d, learning rate: %f, epochs: %d, eps: %f, error: %f\n",
 			ANN::enum_to_string(optim), batch_size, learning_rate, epochs, eps, error);
@@ -101,7 +101,7 @@ int test_logistic_regression2_gradient_descent()
 	//ANN::LogisticRegression2 lr(ANN::Optimization::BGD, samples_single_class_num * 2); // Batch Gradient Descent, epochs = 10000, correct rete: 0.997778
 	ANN::LogisticRegression2 lr(optim, batch_size);
 	lr.set_error(error);
-	lr.set_mu(mu); // SGD_Momentum/RMSprop need to set
+	lr.set_mu(mu); // SGD_Momentum/RMSprop/NAG need to set
 	lr.set_eps(eps); // Adadelta need to set
 	lr.set_beta1(beta1); // Adam/AdaMax need to set
 	lr.set_beta2(beta2); // Adam/AdaMax need to set

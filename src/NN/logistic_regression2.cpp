@@ -142,6 +142,17 @@ float LogisticRegression2::calculate_z(const std::vector<float>& feature) const
 	return z;
 }
 
+float LogisticRegression2::calculate_z2(const std::vector<float>& feature, const std::vector<float>& vw) const
+{
+	float z{0.};
+	for (int i = 0; i < feature_length_; ++i) {
+		z += (w_[i] - mu_ * vw[i]) * feature[i];
+	}
+	z += b_;
+
+	return z;
+}
+
 float LogisticRegression2::calculate_cost_function() const
 {
 	/*// J+=-1/m([y(i)*loga(i)+(1-y(i))*log(1-a(i))])
@@ -204,6 +215,24 @@ float LogisticRegression2::calculate_loss_function_derivative(float predictive_v
 void LogisticRegression2::calculate_gradient_descent(int start, int end)
 {
 	switch (optim_) {
+		case Optimization::NAG: {
+			int len = end - start;
+			std::vector<float> v(feature_length_, 0.);
+			std::vector<float> z(len, 0), dz(len, 0);
+			for (int i = start, x = 0; i < end; ++i, ++x) {
+				z[x] = calculate_z2(data_->samples[random_shuffle_[i]], v);
+				dz[x] = calculate_loss_function_derivative(calculate_activation_function(z[x]), data_->labels[random_shuffle_[i]]);
+
+				for (int j = 0; j < feature_length_; ++j) {
+					float dw = data_->samples[random_shuffle_[i]][j] * dz[x];
+					v[j] = mu_ * v[j] + alpha_ * dw; // formula 5
+					w_[j] = w_[j] - v[j];
+				}
+
+				b_ -= (alpha_ * dz[x]);
+			}
+		}
+			break;
 		case Optimization::AdaMax: {
 			int len = end - start;
 			std::vector<float> m(feature_length_, 0.), u(feature_length_, 1e-8), mhat(feature_length_, 0.);
@@ -271,11 +300,11 @@ void LogisticRegression2::calculate_gradient_descent(int start, int end)
 					float dw = data_->samples[random_shuffle_[i]][j] * dz[x];
 					g[j] = mu_ * g[j] + (1. - mu_) * (dw * dw); // formula 10
 
-					float alpha = (eps_ + std::sqrt(p[j])) / (eps_ + std::sqrt(g[j]));
-					float change = alpha * dw;
-					p[j] = mu_ * p[j] +  (1. - mu_) * (change * change); // formula 15
+					//float alpha = std::sqrt(p[j] + eps_) / std::sqrt(g[j] + eps_);
+					float change = -std::sqrt(p[j] + eps_) / std::sqrt(g[j] + eps_) * dw; // formula 17
+					w_[j] = w_[j] + change;
 
-					w_[j] = w_[j] - change;
+					p[j] = mu_ * p[j] +  (1. - mu_) * (change * change); // formula 15
 				}
 
 				b_ -= (eps_ * dz[x]);
@@ -293,7 +322,7 @@ void LogisticRegression2::calculate_gradient_descent(int start, int end)
 				for (int j = 0; j < feature_length_; ++j) {
 					float dw = data_->samples[random_shuffle_[i]][j] * dz[x];
 					g[j] = mu_ * g[j] + (1. - mu_) * (dw * dw); // formula 18
-					w_[j] = w_[j] - alpha_ * dw / (std::sqrt(g[j]) + eps_);
+					w_[j] = w_[j] - alpha_ * dw / std::sqrt(g[j] + eps_);
 				}
 
 				b_ -= (alpha_ * dz[x]);
@@ -311,7 +340,7 @@ void LogisticRegression2::calculate_gradient_descent(int start, int end)
 				for (int j = 0; j < feature_length_; ++j) {
 					float dw = data_->samples[random_shuffle_[i]][j] * dz[x];
 					g[j] += dw * dw;
-					w_[j] = w_[j] - alpha_ * dw / (std::sqrt(g[j]) + eps_);
+					w_[j] = w_[j] - alpha_ * dw / std::sqrt(g[j] + eps_); // formula 8
 				}
 
 				b_ -= (alpha_ * dz[x]);
@@ -320,16 +349,16 @@ void LogisticRegression2::calculate_gradient_descent(int start, int end)
 			break;
 		case Optimization::SGD_Momentum: {
 			int len = end - start;
-			std::vector<float> change(feature_length_, 0.);
+			std::vector<float> v(feature_length_, 0.);
 			std::vector<float> z(len, 0), dz(len, 0);
 			for (int i = start, x = 0; i < end; ++i, ++x) {
 				z[x] = calculate_z(data_->samples[random_shuffle_[i]]);
 				dz[x] = calculate_loss_function_derivative(calculate_activation_function(z[x]), data_->labels[random_shuffle_[i]]);
 
 				for (int j = 0; j < feature_length_; ++j) {
-					float new_change = mu_ * change[j] - alpha_ * (data_->samples[random_shuffle_[i]][j] * dz[x]);
-					w_[j] += new_change;
-					change[j] = new_change;
+					float dw = data_->samples[random_shuffle_[i]][j] * dz[x];
+					v[j] = mu_ * v[j] + alpha_ * dw; // formula 4
+					w_[j] = w_[j] - v[j];
 				}
 
 				b_ -= (alpha_ * dz[x]);
@@ -345,7 +374,8 @@ void LogisticRegression2::calculate_gradient_descent(int start, int end)
 				dz[x] = calculate_loss_function_derivative(calculate_activation_function(z[x]), data_->labels[random_shuffle_[i]]);
 
 				for (int j = 0; j < feature_length_; ++j) {
-					w_[j] = w_[j] - alpha_ * (data_->samples[random_shuffle_[i]][j] * dz[x]);
+					float dw = data_->samples[random_shuffle_[i]][j] * dz[x];
+					w_[j] = w_[j] - alpha_ * dw;
 				}
 
 				b_ -= (alpha_ * dz[x]);

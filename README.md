@@ -48,6 +48,7 @@
 		- Adadelta(an adaptive learning rate method)
 		- Adam(Adaptive Moment Estimation)
 		- AdaMax(a variant of Adam based on the infinity norm)
+		- NAG(Nesterov Accelerated Gradient)
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)

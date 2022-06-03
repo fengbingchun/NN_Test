@@ -12,6 +12,7 @@
 	https://blog.csdn.net/fengbingchun/article/details/124909910
 	https://blog.csdn.net/fengbingchun/article/details/125018001
 	https://blog.csdn.net/fengbingchun/article/details/125032562
+	https://blog.csdn.net/fengbingchun/article/details/125111680
 */
 
 #include <cstdlib>
@@ -39,7 +40,8 @@ enum class Optimization {
 	RMSProp, // Root Mean Square Propagation
 	Adadelta, // an adaptive learning rate method
 	Adam, // Adaptive Moment Estimation
-	AdaMax // a variant of Adam based on the infinity norm
+	AdaMax, // a variant of Adam based on the infinity norm
+	NAG // Nesterov Accelerated Gradient
 };
 
 inline char* enum_to_string(Optimization optim)
@@ -54,6 +56,7 @@ inline char* enum_to_string(Optimization optim)
 		case Optimization::Adadelta: return "Adadelta";
 		case Optimization::Adam: return "Adam";
 		case Optimization::AdaMax: return "AdaMax";
+		case Optimization::NAG: return "NAG";
 		default: return "Invalid optim";
 	}
 }
@@ -80,6 +83,7 @@ public:
 private:
 	int store_model(const std::string& model) const;
 	float calculate_z(const std::vector<float>& feature) const;  // z(i)=w^T*x(i)+b
+	float calculate_z2(const std::vector<float>& feature, const std::vector<float>& vw) const;
 	float calculate_cost_function() const;
 	static int generate_random(int i) { return std::rand()%i; }
 
