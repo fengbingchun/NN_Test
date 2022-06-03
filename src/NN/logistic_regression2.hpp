@@ -13,6 +13,7 @@
 	https://blog.csdn.net/fengbingchun/article/details/125018001
 	https://blog.csdn.net/fengbingchun/article/details/125032562
 	https://blog.csdn.net/fengbingchun/article/details/125111680
+	https://blog.csdn.net/fengbingchun/article/details/125113842
 */
 
 #include <cstdlib>
@@ -41,7 +42,8 @@ enum class Optimization {
 	Adadelta, // an adaptive learning rate method
 	Adam, // Adaptive Moment Estimation
 	AdaMax, // a variant of Adam based on the infinity norm
-	NAG // Nesterov Accelerated Gradient
+	NAG, // Nesterov Accelerated Gradient
+	Nadam // Nesterov-accelerated Adaptive Moment Estimation
 };
 
 inline char* enum_to_string(Optimization optim)
@@ -57,6 +59,7 @@ inline char* enum_to_string(Optimization optim)
 		case Optimization::Adam: return "Adam";
 		case Optimization::AdaMax: return "AdaMax";
 		case Optimization::NAG: return "NAG";
+		case Optimization::Nadam: return "Nadam";
 		default: return "Invalid optim";
 	}
 }

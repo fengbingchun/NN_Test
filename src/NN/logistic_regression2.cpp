@@ -215,6 +215,33 @@ float LogisticRegression2::calculate_loss_function_derivative(float predictive_v
 void LogisticRegression2::calculate_gradient_descent(int start, int end)
 {
 	switch (optim_) {
+		case Optimization::Nadam: {
+			int len = end - start;
+			std::vector<float> m(feature_length_, 0.), v(feature_length_, 0.), mhat(feature_length_, 0.), vhat(feature_length_, 0.);
+			std::vector<float> z(len, 0.), dz(len, 0.);
+			float beta1t = 1., beta2t = 1.;
+			for (int i = start, x = 0; i < end; ++i, ++x) {
+				z[x] = calculate_z(data_->samples[random_shuffle_[i]]);
+				dz[x] = calculate_loss_function_derivative(calculate_activation_function(z[x]), data_->labels[random_shuffle_[i]]);
+
+				beta1t *= beta1_;
+				beta2t *= beta2_;
+
+				for (int j = 0; j < feature_length_; ++j) {
+					float dw = data_->samples[random_shuffle_[i]][j] * dz[x];
+					m[j] = beta1_ * m[j] + (1. - beta1_) * dw; // formula 19
+					v[j] = beta2_ * v[j] + (1. - beta2_) * (dw * dw); // formula 19
+
+					mhat[j] = m[j] / (1. - beta1t); // formula 20
+					vhat[j] = v[j] / (1. - beta2t); // formula 20
+
+					w_[j] = w_[j] - alpha_ * (beta1_ * mhat[j] + (1. - beta1_) * dw / (1. - beta1t)) / (std::sqrt(vhat[j]) + eps_); // formula 33
+				}
+
+				b_ -= (alpha_ * dz[x]);
+			}
+		}
+			break;
 		case Optimization::NAG: {
 			int len = end - start;
 			std::vector<float> v(feature_length_, 0.);

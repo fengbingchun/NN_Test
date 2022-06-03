@@ -49,6 +49,7 @@
 		- Adam(Adaptive Moment Estimation)
 		- AdaMax(a variant of Adam based on the infinity norm)
 		- NAG(Nesterov Accelerated Gradient)
+		- Nadam(Nesterov-accelerated Adaptive Moment Estimation)
 	- Layers
 		- Dropout
 		- LRN(Local Response Normalization)
