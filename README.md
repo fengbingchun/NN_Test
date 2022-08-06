@@ -1,6 +1,5 @@
 # NN_Test
-**This project contains some neural network code**
-**Note: Clone this repository to E:/GitCode/ in windows**
+**This project contains some neural network code(Note: Clone this repository to E:/GitCode/ in windows):**
 - neural network code(C++)
 	- Perceptron
 	- BP(Back Propagation)
