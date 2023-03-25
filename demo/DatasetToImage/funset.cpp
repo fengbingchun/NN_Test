@@ -10,7 +10,7 @@ int ORLFacestoImage()
 {
 	// Blog: http://blog.csdn.net/fengbingchun/article/details/79008891
 #ifdef _MSC_VER
-	const std::string path{ "E:/GitCode/NN_Test/data/database/ORL_Faces/" };
+	const std::string path{ "../../../data/database/ORL_Faces/" };
 #else
 	const std::string path{ "data/database/ORL_Faces/" };
 #endif
@@ -50,7 +50,7 @@ int ORLFacestoImage()
 	int new_height = dst.rows / factor;
 	cv::resize(dst, dst, cv::Size(new_width, new_height));
 #ifdef _MSC_VER
-	cv::imwrite("E:/GitCode/NN_Test/data/orl_faces_dataset.png", dst);
+	cv::imwrite("../../../data/orl_faces_dataset.png", dst);
 #else
 	cv::imwrite("data/orl_faces_dataset.png", dst);
 #endif
@@ -223,7 +223,7 @@ int ImageToMNIST()
 	// Blog: https://blog.csdn.net/fengbingchun/article/details/87890701
 	// read images
 #ifdef _MSC_VER
-	std::string filename_test_images = "E:/GitCode/NN_Test/data/database/MNIST/t10k-images.idx3-ubyte";
+	std::string filename_test_images = "../../../data/database/MNIST/t10k-images.idx3-ubyte";
 #else
 	std::string filename_test_images = "data/database/MNIST/t10k-images.idx3-ubyte";
 #endif
@@ -238,7 +238,7 @@ int ImageToMNIST()
 
 	// read labels
 #ifdef _MSC_VER
-	std::string filename_test_labels = "E:/GitCode/NN_Test/data/database/MNIST/t10k-labels.idx1-ubyte";
+	std::string filename_test_labels = "../../../data/database/MNIST/t10k-labels.idx1-ubyte";
 #else
 	std::string filename_test_labels = "data/database/MNIST/t10k-labels.idx1-ubyte";
 #endif
@@ -252,7 +252,7 @@ int ImageToMNIST()
 	const int image_rows = 28;
 	const int image_cols = 28;
 #ifdef _MSC_VER
-	const std::string images_save_file_name = "E:/GitCode/NN_Test/data/new_t10k-images.idx3-ubyte";
+	const std::string images_save_file_name = "../../../data/new_t10k-images.idx3-ubyte";
 #else
 	const std::string images_save_file_name = "data/new_t10k-images.idx3-ubyte";
 #endif
@@ -267,7 +267,7 @@ int ImageToMNIST()
 	const int label_magic_number = 2049; // 0x00000801
 	const int label_number = 10000;
 #ifdef _MSC_VER
-	const std::string labels_save_file_name = "E:/GitCode/NN_Test/data/new_t10k-labels.idx1-ubyte";
+	const std::string labels_save_file_name = "../../../data/new_t10k-labels.idx1-ubyte";
 #else
 	const std::string labels_save_file_name = "data/new_t10k-labels.idx1-ubyte";
 #endif
@@ -287,7 +287,7 @@ int MNISTtoImage()
 	// test images and test labels
 	// read MNIST image into OpenCV Mat vector
 #ifdef _MSC_VER
-	std::string filename_test_images = "E:/GitCode/NN_Test/data/database/MNIST/t10k-images.idx3-ubyte";
+	std::string filename_test_images = "../../../data/database/MNIST/t10k-images.idx3-ubyte";
 #else
 	std::string filename_test_images = "data/database/MNIST/t10k-images.idx3-ubyte";
 #endif
@@ -298,7 +298,7 @@ int MNISTtoImage()
 
 	// read MNIST label into int vector
 #ifdef _MSC_VER
-	std::string filename_test_labels = "E:/GitCode/NN_Test/data/database/MNIST/t10k-labels.idx1-ubyte";
+	std::string filename_test_labels = "../../../data/database/MNIST/t10k-labels.idx1-ubyte";
 #else
 	std::string filename_test_labels = "data/database/MNIST/t10k-labels.idx1-ubyte";
 #endif
@@ -315,9 +315,9 @@ int MNISTtoImage()
 	int count_digits[10];
 	std::fill(&count_digits[0], &count_digits[0] + 10, 0);
 
-	fprintf(stdout, "##### Warning: need to create E:/GitCode/NN_Test/data/tmp/MNIST/test_images directory by yourself in windows.\n");
+	fprintf(stdout, "##### Warning: need to create ../../../data/tmp/MNIST/test_images directory by yourself in windows.\n");
 #ifdef _MSC_VER
-	std::string save_test_images_path = "E:/GitCode/NN_Test/data/tmp/MNIST/test_images/";
+	std::string save_test_images_path = "../../../data/tmp/MNIST/test_images/";
 #else
 	std::string save_test_images_path = "data/tmp/MNIST/test_images/";
 #endif
@@ -333,7 +333,7 @@ int MNISTtoImage()
 	// train images and train labels
 	// read MNIST image into OpenCV Mat vector
 #ifdef _MSC_VER
-	std::string filename_train_images = "E:/GitCode/NN_Test/data/database/MNIST/train-images.idx3-ubyte";
+	std::string filename_train_images = "../../../data/database/MNIST/train-images.idx3-ubyte";
 #else
 	std::string filename_train_images = "data/database/MNIST/train-images.idx3-ubyte";
 #endif
@@ -344,7 +344,7 @@ int MNISTtoImage()
 
 	// read MNIST label into int vector
 #ifdef _MSC_VER
-	std::string filename_train_labels = "E:/GitCode/NN_Test/data/database/MNIST/train-labels.idx1-ubyte";
+	std::string filename_train_labels = "../../../data/database/MNIST/train-labels.idx1-ubyte";
 #else
 	std::string filename_train_labels = "data/database/MNIST/train-labels.idx1-ubyte";
 #endif
@@ -360,9 +360,9 @@ int MNISTtoImage()
 	// save train images
 	std::fill(&count_digits[0], &count_digits[0] + 10, 0);
 
-	fprintf(stdout, "##### Warning: need to create E:/GitCode/NN_Test/data/tmp/MNIST/train_images directory by yourself in windows.\n");
+	fprintf(stdout, "##### Warning: need to create ../../../data/tmp/MNIST/train_images directory by yourself in windows.\n");
 #ifdef _MSC_VER
-	std::string save_train_images_path = "E:/GitCode/NN_Test/data/tmp/MNIST/train_images/";
+	std::string save_train_images_path = "../../../data/tmp/MNIST/train_images/";
 #else
 	std::string save_train_images_path = "data/tmp/MNIST/train_images/";
 #endif
@@ -377,7 +377,7 @@ int MNISTtoImage()
 
 	// save big imags
 #ifdef _MSC_VER
-	std::string images_path = "E:/GitCode/NN_Test/data/tmp/MNIST/train_images/";
+	std::string images_path = "../../../data/tmp/MNIST/train_images/";
 #else
 	std::string images_path = "data/tmp/MNIST/train_images/";
 #endif
@@ -534,18 +534,18 @@ int CIFAR10toImage()
 {
 	// Blog: http://blog.csdn.net/fengbingchun/article/details/53560637
 #ifdef _MSC_VER
-	std::string images_path = "E:/GitCode/NN_Test/data/database/CIFAR/CIFAR-10/";
+	std::string images_path = "../../../data/database/CIFAR/CIFAR-10/";
 #else
 	std::string images_path = "data/database/CIFAR/CIFAR-10/";
 #endif
 	
-	fprintf(stdout, "##### Warning: need to create E:/GitCode/NN_Test/data/tmp/cifar-10_train directory by yourself in windows.\n");
+	fprintf(stdout, "##### Warning: need to create ../../../data/tmp/cifar-10_train directory by yourself in windows.\n");
 	// train image
 	std::vector<int> label_count(10, 0);
 	for (int i = 1; i <= 5; i++) {
 		std::string bin_name = images_path + "data_batch_" + std::to_string(i) + ".bin";
 #ifdef _MSC_VER
-		std::string image_save_path = "E:/GitCode/NN_Test/data/tmp/cifar-10_train/";
+		std::string image_save_path = "../../../data/tmp/cifar-10_train/";
 #else
 		std::string image_save_path = "data/tmp/cifar-10_train/";
 #endif
@@ -558,9 +558,9 @@ int CIFAR10toImage()
 	std::fill(&label_count[0], &label_count[0] + 10, 0);
 	std::string bin_name = images_path + "test_batch.bin";
 
-	fprintf(stdout, "##### Warning: need to create E:/GitCode/NN_Test/data/tmp/cifar-10_test directory by yourself in windows.\n");
+	fprintf(stdout, "##### Warning: need to create ../../../data/tmp/cifar-10_test directory by yourself in windows.\n");
 #ifdef _MSC_VER
-	std::string image_save_path = "E:/GitCode/NN_Test/data/tmp/cifar-10_test/";
+	std::string image_save_path = "../../../data/tmp/cifar-10_test/";
 #else
 	std::string image_save_path = "data/tmp/cifar-10_test/";
 #endif
@@ -570,7 +570,7 @@ int CIFAR10toImage()
 
 	// save big imags
 #ifdef _MSC_VER
-	images_path = "E:/GitCode/NN_Test/data/tmp/cifar-10_train/";
+	images_path = "../../../data/tmp/cifar-10_train/";
 #else
 	images_path = "data/tmp/cifar-10_train/";
 #endif
@@ -613,7 +613,7 @@ int CIFAR100toImage()
 {
 	// Blog: http://blog.csdn.net/fengbingchun/article/details/53560637
 #ifdef _MSC_VER
-	std::string images_path = "E:/GitCode/NN_Test/data/database/CIFAR/CIFAR-100/";
+	std::string images_path = "../../../data/database/CIFAR/CIFAR-100/";
 #else
 	std::string images_path = "data/database/CIFAR/CIFAR-100/";
 #endif
@@ -626,10 +626,10 @@ int CIFAR100toImage()
 	}
 
 	std::string bin_name = images_path + "train.bin";
-	fprintf(stdout, "##### Warning: need to create E:/GitCode/NN_Test/data/tmp/cifar-100_train directory by yourself in windows.\n");
-	fprintf(stdout, "##### Warning: need to decompress E:/GitCode/NN_Test/data/database/CIFAR/CIFAR-100/train.7z.* files by yourself in windows.\n");
+	fprintf(stdout, "##### Warning: need to create ../../../data/tmp/cifar-100_train directory by yourself in windows.\n");
+	fprintf(stdout, "##### Warning: need to decompress ../../../data/database/CIFAR/CIFAR-100/train.7z.* files by yourself in windows.\n");
 #ifdef _MSC_VER
-	std::string image_save_path = "E:/GitCode/NN_Test/data/tmp/cifar-100_train/";
+	std::string image_save_path = "../../../data/tmp/cifar-100_train/";
 #else
 	std::string image_save_path = "data/tmp/cifar-100_train/";
 #endif
@@ -643,9 +643,9 @@ int CIFAR100toImage()
 		std::fill(&label_count[i][0], &label_count[i][0] + 100, 0);
 	}
 	bin_name = images_path + "test.bin";
-	fprintf(stdout, "##### Warning: need to create E:/GitCode/NN_Test/data/tmp/cifar-100_test directory by yourself in windows.\n");
+	fprintf(stdout, "##### Warning: need to create ../../../data/tmp/cifar-100_test directory by yourself in windows.\n");
 #ifdef _MSC_VER
-	image_save_path = "E:/GitCode/NN_Test/data/tmp/cifar-100_test/";
+	image_save_path = "../../../data/tmp/cifar-100_test/";
 #else
 	image_save_path = "data/tmp/cifar-100_test/";
 #endif
@@ -655,7 +655,7 @@ int CIFAR100toImage()
 
 	// save big imags
 #ifdef _MSC_VER
-	images_path = "E:/GitCode/NN_Test/data/tmp/cifar-100_train/";
+	images_path = "../../../data/tmp/cifar-100_train/";
 #else
 	images_path = "data/tmp/cifar-100_train/";
 #endif

@@ -268,9 +268,9 @@ int test_libsvm_two_classification_train()
 {
 	// reference: libsvm/svm-train.c
 #ifdef _MSC_VER
-	const std::string input_file_name{ "E:/GitCode/NN_Test/data/database/liver-disorders/liver-disorders_train.txt" },
-		output_file_name{ "E:/GitCode/NN_Test/data/database/liver-disorders/liver-disorders_train_scale.txt" },
-		svm_model{"E:/GitCode/NN_Test/data/svm.model"};
+	const std::string input_file_name{ "../../../data/database/liver-disorders/liver-disorders_train.txt" },
+		output_file_name{ "../../../data/database/liver-disorders/liver-disorders_train_scale.txt" },
+		svm_model{"../../../data/svm.model"};
 #else
 	const std::string input_file_name{ "data/database/liver-disorders/liver-disorders_train.txt" },
 		output_file_name{ "data/database/liver-disorders/liver-disorders_train_scale.txt" },
@@ -380,10 +380,10 @@ int test_libsvm_two_classification_predict()
 {
 	// reference: libsvm/svm-predict.c
 #ifdef _MSC_VER
-	const std::string input_file_name{ "E:/GitCode/NN_Test/data/database/liver-disorders/liver-disorders_predict.txt" },
-		scale_file_name{ "E:/GitCode/NN_Test/data/database/liver-disorders/liver-disorders_predict_scale.txt" },
-		svm_model{ "E:/GitCode/NN_Test/data/svm.model" },
-		predict_result_file_name{ "E:/GitCode/NN_Test/data/svm_predict_result.txt" };
+	const std::string input_file_name{ "../../../data/database/liver-disorders/liver-disorders_predict.txt" },
+		scale_file_name{ "../../../data/database/liver-disorders/liver-disorders_predict_scale.txt" },
+		svm_model{ "../../../data/svm.model" },
+		predict_result_file_name{ "../../../data/svm_predict_result.txt" };
 #else
 	const std::string input_file_name{ "data/database/liver-disorders/liver-disorders_predict.txt" },
 		scale_file_name{ "data/database/liver-disorders/liver-disorders_predict_scale.txt" },

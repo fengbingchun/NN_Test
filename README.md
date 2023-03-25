@@ -1,5 +1,5 @@
 # NN_Test
-**This project contains some neural network code(Note: Clone this repository to E:/GitCode/ in windows):**
+**This project contains some neural network code(Note: depend on opencv):**
 - neural network code(C++)
 	- Perceptron
 	- BP(Back Propagation)
@@ -59,7 +59,7 @@
 	- tiny-cnn [GitHub](https://github.com/nyanp/tiny-cnn)
 	- tiny-dnn [GitHub](https://github.com/tiny-dnn/tiny-dnn)
 	- libsvm [GitHub](https://github.com/cjlin1/libsvm)
-	- OpenCV 3.3 [GitHub](https://github.com/opencv/opencv)
+	- OpenCV [GitHub](https://github.com/opencv/opencv)
 		- Logistic Regression
 		- Support Vector Machines(SVM)
 		- KNN(K-Nearest Neighbor)
@@ -67,6 +67,14 @@
 		- PCA(Principal Components Analysis)
 		- k-means
 - Python code(support windows and linux platform)
+	- Installation(Anaconda)
+		```
+		conda create -n NN_Test python=3.9
+		conda activate NN_Test
+		git clone https://github.com/fengbingchun/NN_Test
+		cd NN_Test/demp/Python
+		pip install -r requirements.txt
+		```
 	- KNN(K-Nearest Neighbor)
 	- Decision Tree(CART)
 	- PCA(Principal Components Analysis)
@@ -77,7 +85,7 @@
 	- ORL Faces Database
 
 **The project support platform:**
-- windows7/10 64 bits: It can be directly build with VS2017 in windows7/10 64bits.
+- windows10 64 bits: It can be directly build with VS2022 in windows10 64bits.
 - Linux:
 	- DatasetToImage support cmake build(file position: prj/linux_cmake_DatasetToImage)
 	- Math support cmake build(file position: prj/linux_cmake_Math)

@@ -6,6 +6,7 @@
 #include <memory>
 #include <random>
 #include <opencv2/opencv.hpp>
+#include <opencv2/core/core_c.h>
 #include "common.hpp"
 
 int test_loss_function()
@@ -612,8 +613,8 @@ int test_determinant()
 int test_matrix_transpose()
 {
 #ifdef _MSC_VER
-	const std::vector<std::string> image_name{ "E:/GitCode/NN_Test/data/images/test1.jpg",
-		"E:/GitCode/NN_Test/data/images/ret_mat_transpose.jpg"};
+	const std::vector<std::string> image_name{ "../../../data/images/test1.jpg",
+		"../../../data/images/ret_mat_transpose.jpg"};
 #else
 	const std::vector<std::string> image_name{ "data/images/test1.jpg",
 		"data/images/ret_mat_transpose.jpg"};

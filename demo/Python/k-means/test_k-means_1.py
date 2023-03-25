@@ -18,9 +18,9 @@ else: # nt: windows
 
 # Importing the dataset
 if os_name == "posix":
-	data = pd.read_csv('../../..//data/database/xclara.csv')
+	data = pd.read_csv('../../../data/database/xclara.csv')
 else:
-	data = pd.read_csv('E:/GitCode/NN_Test/data/database/xclara.csv')
+	data = pd.read_csv('../../data/database/xclara.csv')
 #print(data.shape)
 data.head()
 

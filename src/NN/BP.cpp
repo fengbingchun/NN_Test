@@ -141,8 +141,8 @@ bool BP::getSrcData()
 	assert(data_input_train && data_output_train && data_input_test && data_output_test);
 
 #ifdef _MSC_VER
-	std::string filename_train_images = "E:/GitCode/NN_Test/data/database/MNIST/train-images.idx3-ubyte";
-	std::string filename_train_labels = "E:/GitCode/NN_Test/data/database/MNIST/train-labels.idx1-ubyte";
+	std::string filename_train_images = "../../../data/database/MNIST/train-images.idx3-ubyte";
+	std::string filename_train_labels = "../../../data/database/MNIST/train-labels.idx1-ubyte";
 #else
 	std::string filename_train_images = "data/database/MNIST/train-images.idx3-ubyte";
 	std::string filename_train_labels = "data/database/MNIST/train-labels.idx1-ubyte";
@@ -163,8 +163,8 @@ bool BP::getSrcData()
 	delete[] q;*/
 
 #ifdef _MSC_VER
-	std::string filename_test_images = "E:/GitCode/NN_Test/data/database/MNIST/t10k-images.idx3-ubyte";
-	std::string filename_test_labels = "E:/GitCode/NN_Test/data/database/MNIST/t10k-labels.idx1-ubyte";
+	std::string filename_test_images = "../../../data/database/MNIST/t10k-images.idx3-ubyte";
+	std::string filename_test_labels = "../../../data/database/MNIST/t10k-labels.idx1-ubyte";
 #else
 	std::string filename_test_images = "data/database/MNIST/t10k-images.idx3-ubyte";
 	std::string filename_test_labels = "data/database/MNIST/t10k-labels.idx1-ubyte";
@@ -377,7 +377,7 @@ bool BP::train()
 		std::cout << ",    accuray rate: " << accuracyRate << std::endl;
 		if (accuracyRate > accuracy_rate_BP) {
 #ifdef _MSC_VER
-			saveModelFile("E:/GitCode/NN_Test/data/bp.model");
+			saveModelFile("../../../data/bp.model");
 #else	
 			saveModelFile("data/bp.model");
 #endif
@@ -402,7 +402,7 @@ bool BP::train()
 
 	if (i == iterations_BP) {
 #ifdef _MSC_VER
-		saveModelFile("E:/GitCode/NN_Test/data/bp.model");
+		saveModelFile("../../../data/bp.model");
 #else
 		saveModelFile("data/bp.model");
 #endif

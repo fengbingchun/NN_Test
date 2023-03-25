@@ -289,8 +289,8 @@ bool CNN::getSrcData()
 	assert(data_input_train && data_output_train && data_input_test && data_output_test);
 
 #ifdef _MSC_VER
-	std::string filename_train_images = "E:/GitCode/NN_Test/data/database/MNIST/train-images.idx3-ubyte";
-	std::string filename_train_labels = "E:/GitCode/NN_Test/data/database/MNIST/train-labels.idx1-ubyte";
+	std::string filename_train_images = "../../../data/database/MNIST/train-images.idx3-ubyte";
+	std::string filename_train_labels = "../../../data/database/MNIST/train-labels.idx1-ubyte";
 #else
 	std::string filename_train_images = "data/database/MNIST/train-images.idx3-ubyte";
 	std::string filename_train_labels = "data/database/MNIST/train-labels.idx1-ubyte";
@@ -299,8 +299,8 @@ bool CNN::getSrcData()
 	readMnistLabels(filename_train_labels, data_output_train, num_patterns_train_CNN);
 
 #ifdef _MSC_VER
-	std::string filename_test_images = "E:/GitCode/NN_Test/data/database/MNIST/t10k-images.idx3-ubyte";
-	std::string filename_test_labels = "E:/GitCode/NN_Test/data/database/MNIST/t10k-labels.idx1-ubyte";
+	std::string filename_test_images = "../../../data/database/MNIST/t10k-images.idx3-ubyte";
+	std::string filename_test_labels = "../../../data/database/MNIST/t10k-labels.idx1-ubyte";
 #else
 	std::string filename_test_images = "data/database/MNIST/t10k-images.idx3-ubyte";
 	std::string filename_test_labels = "data/database/MNIST/t10k-labels.idx1-ubyte";
@@ -365,7 +365,7 @@ bool CNN::train()
 		std::cout << ",    accuray rate: " << accuracyRate << std::endl;
 		if (accuracyRate > accuracy_rate_CNN) {
 #ifdef _MSC_VER
-			saveModelFile("E:/GitCode/NN_Test/data/cnn.model");
+			saveModelFile("../../../data/cnn.model");
 #else
 			saveModelFile("data/cnn.model");
 #endif
@@ -376,7 +376,7 @@ bool CNN::train()
 
 	if (iter == num_epochs_CNN) {
 #ifdef _MSC_VER
-		saveModelFile("E:/GitCode/NN_Test/data/cnn.model");
+		saveModelFile("../../../data/cnn.model");
 #else
 		saveModelFile("data/cnn.model");
 #endif

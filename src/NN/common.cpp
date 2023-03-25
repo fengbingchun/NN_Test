@@ -30,7 +30,7 @@ int save_images(const std::vector<cv::Mat>& src, const std::string& name, int ro
 int mat_horizontal_concatenate()
 {
 #ifdef _MSC_VER
-	const std::string path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
+	const std::string path{ "../../../data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
@@ -73,7 +73,7 @@ int mat_horizontal_concatenate()
 	cv::Mat dst;
 	cv::vconcat(middle.data(), middle.size(), dst);
 #ifdef _MSC_VER
-	cv::imwrite("E:/GitCode/NN_Test/data/result.jpg", dst);
+	cv::imwrite("../../../data/result.jpg", dst);
 #else
 	cv::imwrite("data/result.jpg", dst);
 #endif

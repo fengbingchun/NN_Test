@@ -3,6 +3,7 @@
 #include <cmath>
 #include <random>
 #include <memory>
+#include <fstream>
 #include "common.hpp"
 
 namespace ANN {

@@ -93,7 +93,7 @@ static void train_lenet(std::string data_dir_path)
 
 	// save networks
 #ifdef _MSC_VER
-	std::ofstream ofs("E:/GitCode/NN_Test/data/LeNet-weights");
+	std::ofstream ofs("../../../data/LeNet-weights");
 #else
 	std::ofstream ofs("data/LeNet-weights");
 #endif
@@ -165,7 +165,7 @@ static void recognize(const std::string& dictionary, const std::string& filename
 int test_tiny_cnn_train()
 {
 #ifdef _MSC_VER
-	std::string data_path = "E:/GitCode/NN_Test/data/database/MNIST";
+	std::string data_path = "../../../data/database/MNIST";
 #else
 	std::string data_path = "data/database/MNIST";
 #endif
@@ -177,8 +177,8 @@ int test_tiny_cnn_train()
 int test_tiny_cnn_predict()
 {
 #ifdef _MSC_VER
-	std::string model_path = "E:/GitCode/NN_Test/data/LeNet-weights";
-	std::string image_path = "E:/GitCode/NN_Test/data/images/digit/handwriting_2/";
+	std::string model_path = "../../../data/LeNet-weights";
+	std::string image_path = "../../../data/images/digit/handwriting_2/";
 #else
 	std::string model_path = "data/LeNet-weights";
 	std::string image_path = "data/images/digit/handwriting_2/";

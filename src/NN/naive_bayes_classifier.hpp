@@ -1,10 +1,11 @@
-#ifndef FBC_NN_NAIVEBAYESCLASSIFIER_HPP_
+﻿#ifndef FBC_NN_NAIVEBAYESCLASSIFIER_HPP_
 #define FBC_NN_NAIVEBAYESCLASSIFIER_HPP_
 
 // Blog: http://blog.csdn.net/fengbingchun/article/details/78064270
 
 #include <vector>
 #include <tuple>
+#include <string>
 
 namespace ANN {
 

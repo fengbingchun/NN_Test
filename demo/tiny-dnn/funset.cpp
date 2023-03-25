@@ -151,7 +151,7 @@ static void convert_image(const std::string& imagefilename, double minv, double 
 int test_dnn_mnist_train()
 {
 #ifdef _MSC_VER
-	std::string data_dir_path = "E:/GitCode/NN_Test/data/database/MNIST";
+	std::string data_dir_path = "../../../data/database/MNIST";
 #else
 	std::string data_dir_path = "data/database/MNIST";
 #endif
@@ -163,8 +163,8 @@ int test_dnn_mnist_train()
 int test_dnn_mnist_predict()
 {
 #ifdef _MSC_VER
-	std::string model { "E:/GitCode/NN_Test/data/database/MNIST/LeNet-model" };
-	std::string image_path { "E:/GitCode/NN_Test/data/images/digit/handwriting_2/"};
+	std::string model { "../../../data/database/MNIST/LeNet-model" };
+	std::string image_path { "../../../data/images/digit/handwriting_2/"};
 #else
 	std::string model { "data/database/MNIST/LeNet-model" };
 	std::string image_path { "data/images/digit/handwriting_2/"};
@@ -238,7 +238,7 @@ static void construct_net(N& nn)
 int test_dnn_cifar10_train()
 {
 #ifdef _MSC_VER
-	std::string data_dir_path = "E:/GitCode/NN_Test/data/database/CIFAR/CIFAR-10/";
+	std::string data_dir_path = "../../../data/database/CIFAR/CIFAR-10/";
 #else
 	std::string data_dir_path = "data/database/CIFAR/CIFAR-10/";
 #endif

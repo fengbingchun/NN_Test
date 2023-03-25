@@ -72,8 +72,8 @@ int test_logistic_regression2_gradient_descent()
 
 	fprintf(stdout, "load train images ...\n");
 #ifdef _MSC_VER
-	const std::vector<std::string> image_path{ "E:/GitCode/NN_Test/data/tmp/MNIST/train_images/", "E:/GitCode/NN_Test/data/tmp/MNIST/test_images/"};
-	const std::string model{ "E:/GitCode/NN_Test/data/logistic_regression2.model" };
+	const std::vector<std::string> image_path{ "../../../data/tmp/MNIST/train_images/", "../../../data/tmp/MNIST/test_images/"};
+	const std::string model{ "../../../data/logistic_regression2.model" };
 #else
 	const std::vector<std::string> image_path{ "data/tmp/MNIST/train_images/", "data/tmp/MNIST/test_images/"};
 	const std::string model{ "data/logistic_regression2.model" };
@@ -224,7 +224,7 @@ int test_lrn()
 int test_kmeans()
 {
 #ifdef _MSC_VER
-	const std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
+	const std::string image_path{ "../../../data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
@@ -290,7 +290,7 @@ int test_kmeans()
 int test_single_hidden_layer_train()
 {
 #ifdef _MSC_VER
-	const std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
+	const std::string image_path{ "../../../data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
@@ -335,7 +335,7 @@ int test_single_hidden_layer_train()
 	}
 
 #ifdef _MSC_VER
-	const std::string model{ "E:/GitCode/NN_Test/data/single_hidden_layer.model" };
+	const std::string model{ "../../../data/single_hidden_layer.model" };
 #else
 	const std::string model{ "data/single_hidden_layer.model" };
 #endif
@@ -352,7 +352,7 @@ int test_single_hidden_layer_train()
 int test_single_hidden_layer_predict()
 {
 #ifdef _MSC_VER
-	const std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
+	const std::string image_path{ "../../../data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
@@ -386,7 +386,7 @@ int test_single_hidden_layer_predict()
 	CHECK(data.rows == labels.rows);
 
 #ifdef _MSC_VER
-	const std::string model{ "E:/GitCode/NN_Test/data/single_hidden_layer.model" };
+	const std::string model{ "../../../data/single_hidden_layer.model" };
 #else
 	const std::string model{ "data/single_hidden_layer.model" };
 #endif
@@ -414,7 +414,7 @@ int test_single_hidden_layer_predict()
 int test_logistic_regression2_train()
 {
 #ifdef _MSC_VER
-	const std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
+	const std::string image_path{ "../../../data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
@@ -456,7 +456,7 @@ int test_logistic_regression2_train()
 	}
 
 #ifdef _MSC_VER
-	const std::string model{ "E:/GitCode/NN_Test/data/logistic_regression2.model" };
+	const std::string model{ "../../../data/logistic_regression2.model" };
 #else
 	const std::string model{ "data/logistic_regression2.model" };
 #endif
@@ -472,7 +472,7 @@ int test_logistic_regression2_train()
 int test_logistic_regression2_predict()
 {
 #ifdef _MSC_VER
-	const std::string model{ "E:/GitCode/NN_Test/data/logistic_regression2.model" };
+	const std::string model{ "../../../data/logistic_regression2.model" };
 #else
 	const std::string model{ "data/logistic_regression2.model" };
 #endif
@@ -484,7 +484,7 @@ int test_logistic_regression2_predict()
 	}
 
 #ifdef _MSC_VER
-	const std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
+	const std::string image_path{ "../../../data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
@@ -554,7 +554,7 @@ void normalize(const std::vector<float>& src, std::vector<unsigned char>& dst)
 int test_pca()
 {
 #ifdef _MSC_VER
-	const std::string image_path{ "E:/GitCode/NN_Test/data/database/ORL_Faces/" };
+	const std::string image_path{ "../../../data/database/ORL_Faces/" };
 #else
 	const std::string image_path{ "data/database/ORL_Faces/" };
 #endif
@@ -572,7 +572,7 @@ int test_pca()
 		images.emplace_back(mat);
 	}
 #ifdef _MSC_VER
-	save_images(images, "E:/GitCode/NN_Test/data/pca_src.jpg", 5);
+	save_images(images, "../../../data/pca_src.jpg", 5);
 #else
 	save_images(images, "data/pca_src.jpg", 5);
 #endif
@@ -593,7 +593,7 @@ int test_pca()
 	}
 
 #ifdef _MSC_VER	
-	const std::string save_model_file{ "E:/GitCode/NN_Test/data/pca.model" };
+	const std::string save_model_file{ "../../../data/pca.model" };
 #else
 	const std::string save_model_file{ "data/pca.model" };
 #endif
@@ -618,7 +618,7 @@ int test_pca()
 		tmp.copyTo(result[i]);
 	}
 #ifdef _MSC_VER
-	save_images(result, "E:/GitCode/NN_Test/data/pca_result.jpg", 5);
+	save_images(result, "../../../data/pca_result.jpg", 5);
 #else
 	save_images(result, "data/pca_result.jpg", 5);
 #endif
@@ -650,7 +650,7 @@ int test_decision_tree_train()
 
 	dt.train();
 #ifdef _MSC_VER
-	const char* model_name = "E:/GitCode/NN_Test/data/decision_tree.model";
+	const char* model_name = "../../../data/decision_tree.model";
 #else
 	const char* model_name = "data/decision_tree.model";
 #endif
@@ -666,7 +666,7 @@ int test_decision_tree_train()
 
 	// banknote authentication dataset
 #ifdef _MSC_VER
-	const char* file_name = "E:/GitCode/NN_Test/data/database/BacknoteDataset/data_banknote_authentication.txt";
+	const char* file_name = "../../../data/database/BacknoteDataset/data_banknote_authentication.txt";
 #else
 	const char* file_name = "data/database/BacknoteDataset/data_banknote_authentication.txt";
 #endif
@@ -687,7 +687,7 @@ int test_decision_tree_train()
 	dt.set_min_size(10);
 	dt.train();
 #ifdef _MSC_VER
-	const char* model_name = "E:/GitCode/NN_Test/data/decision_tree.model";
+	const char* model_name = "../../../data/decision_tree.model";
 #else
 	const char* model_name = "data/decision_tree.model";
 #endif
@@ -699,7 +699,7 @@ int test_decision_tree_train()
 int test_decision_tree_predict()
 {
 #ifdef _MSC_VER
-	const char* model_name = "E:/GitCode/NN_Test/data/decision_tree.model";
+	const char* model_name = "../../../data/decision_tree.model";
 #else
 	const char* model_name = "data/decision_tree.model";
 #endif
@@ -726,7 +726,7 @@ int test_decision_tree_predict()
 int test_knn_classifier_predict()
 {
 #ifdef _MSC_VER
-	const std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
+	const std::string image_path{ "../../../data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
@@ -826,7 +826,7 @@ int test_knn_classifier_predict()
 int test_logistic_regression_train()
 {
 #ifdef _MSC_VER
-	const std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
+	const std::string image_path{ "../../../data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
@@ -872,7 +872,7 @@ int test_logistic_regression_train()
 	}
 
 #ifdef _MSC_VER
-	const std::string model{ "E:/GitCode/NN_Test/data/logistic_regression.model" };
+	const std::string model{ "../../../data/logistic_regression.model" };
 #else
 	const std::string model{ "data/logistic_regression.model" };
 #endif
@@ -888,7 +888,7 @@ int test_logistic_regression_train()
 int test_logistic_regression_predict()
 {
 #ifdef _MSC_VER
-	const std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_0_and_1/" };
+	const std::string image_path{ "../../../data/images/digit/handwriting_0_and_1/" };
 #else
 	const std::string image_path{ "data/images/digit/handwriting_0_and_1/" };
 #endif
@@ -922,7 +922,7 @@ int test_logistic_regression_predict()
 	CHECK(data.rows == labels.rows);
 
 #ifdef _MSC_VER
-	const std::string model{ "E:/GitCode/NN_Test/data/logistic_regression.model" };
+	const std::string model{ "../../../data/logistic_regression.model" };
 #else
 	const std::string model{ "data/logistic_regression.model" };
 #endif
@@ -966,7 +966,7 @@ int test_naive_bayes_classifier_train()
 	}
 
 #ifdef _MSC_VER
-	const std::string model{ "E:/GitCode/NN_Test/data/naive_bayes_classifier.model" };
+	const std::string model{ "../../../data/naive_bayes_classifier.model" };
 #else
 	const std::string model{ "data/naive_bayes_classifier.model" };
 #endif
@@ -985,7 +985,7 @@ int test_naive_bayes_classifier_predict()
 
 	ANN::NaiveBayesClassifier<float> naive_bayes;
 #ifdef _MSC_VER
-	const std::string model{ "E:/GitCode/NN_Test/data/naive_bayes_classifier.model" };
+	const std::string model{ "../../../data/naive_bayes_classifier.model" };
 #else
 	const std::string model{ "data/naive_bayes_classifier.model" };
 #endif
@@ -1021,7 +1021,7 @@ int test_linear_regression_train()
 	float learning_rate{ 0.001f };
 	int iterations{ 1000 };
 #ifdef _MSC_VER
-	std::string model{ "E:/GitCode/NN_Test/data/linear_regression.model" };
+	std::string model{ "../../../data/linear_regression.model" };
 #else
 	std::string model{ "data/linear_regression.model" };
 #endif
@@ -1040,7 +1040,7 @@ int test_linear_regression_predict()
 	ANN::LinearRegression<float> lr;
 
 #ifdef _MSC_VER
-	std::string model{ "E:/GitCode/NN_Test/data/linear_regression.model" };
+	std::string model{ "../../../data/linear_regression.model" };
 #else
 	std::string model{ "data/linear_regression.model" };
 #endif
@@ -1130,7 +1130,7 @@ int test_BP_predict()
 {
 	ANN::BP bp2;
 #ifdef _MSC_VER
-	bool flag = bp2.readModelFile("E:/GitCode/NN_Test/data/bp.model");
+	bool flag = bp2.readModelFile("../../../data/bp.model");
 #else
 	bool flag = bp2.readModelFile("data/bp.model");
 #endif
@@ -1141,7 +1141,7 @@ int test_BP_predict()
 
 	int target[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 #ifdef _MSC_VER
-	std::string path_images = "E:/GitCode/NN_Test/data/images/digit/handwriting_1/";
+	std::string path_images = "../../../data/images/digit/handwriting_1/";
 #else
 	std::string path_images = "data/images/digit/handwriting_1/";
 #endif
@@ -1204,7 +1204,7 @@ int test_CNN_predict()
 {
 	ANN::CNN cnn2;
 #ifdef _MSC_VER
-	bool flag = cnn2.readModelFile("E:/GitCode/NN_Test/data/cnn.model");
+	bool flag = cnn2.readModelFile("../../../data/cnn.model");
 #else
 	bool flag = cnn2.readModelFile("data/cnn.model");
 #endif
@@ -1216,7 +1216,7 @@ int test_CNN_predict()
 	int width{ 32 }, height{ 32 };
 	std::vector<int> target{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 #ifdef _MSC_VER
-	std::string image_path{ "E:/GitCode/NN_Test/data/images/digit/handwriting_2/" };
+	std::string image_path{ "../../../data/images/digit/handwriting_2/" };
 #else
 	std::string image_path{ "data/images/digit/handwriting_2/" };
 #endif
