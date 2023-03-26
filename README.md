@@ -72,7 +72,7 @@
 		conda create -n NN_Test python=3.9
 		conda activate NN_Test
 		git clone https://github.com/fengbingchun/NN_Test
-		cd NN_Test/demp/Python
+		cd NN_Test/demo/Python
 		pip install -r requirements.txt
 		```
 	- KNN(K-Nearest Neighbor)
