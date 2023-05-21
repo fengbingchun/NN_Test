@@ -1,6 +1,7 @@
 ﻿#ifndef FBC_MATH_FUNSET_HPP_
 #define FBC_MATH_FUNSET_HPP_
 
+int test_quaternion(); // 四元数,Hamilton
 int test_loss_function(); // 损失函数
 int test_dropout(); // 深度学习中的Dropout,在训练阶段防止过拟合
 int test_brute_force_string_match(); // 通过brute force算法求解字符串匹配

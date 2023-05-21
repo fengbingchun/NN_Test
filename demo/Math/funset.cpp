@@ -7,7 +7,54 @@
 #include <random>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core_c.h>
+#include <opencv2/core/quaternion.hpp>
 #include "common.hpp"
+
+void quaternion_to_rotate_matrix(double qvec[4])
+{
+	double m11 = 1 - 2 * std::pow(qvec[2], 2) - 2 * std::pow(qvec[3], 2);
+	double m12 = 2 * qvec[1] * qvec[2] - 2 * qvec[0] * qvec[3];
+	double m13 = 2 * qvec[3] * qvec[1] + 2 * qvec[0] * qvec[2];
+
+	double m21 = 2 * qvec[1] * qvec[2] + 2 * qvec[0] * qvec[3];
+	double m22 = 1 - 2 * std::pow(qvec[1], 2) - 2 * std::pow(qvec[3], 2);
+	double m23 = 2 * qvec[2] * qvec[3] - 2 * qvec[0] * qvec[1];
+
+	double m31 = 2 * qvec[3] * qvec[1] - 2 * qvec[0] * qvec[2];
+	double m32 = 2 * qvec[2] * qvec[3] + 2 * qvec[0] * qvec[1];
+	double m33 = 1 - 2 * std::pow(qvec[1], 2) - 2 * std::pow(qvec[2], 2);
+
+	std::cout << "result:" << "\n";
+	std::cout << "[" << m11 << ", " << m12 << ", " << m13 << ";" << "\n";
+	std::cout << m21 << ", " << m22 << ", " << m23 << ";" << "\n";
+	std::cout << m31 << ", " << m32 << ", " << m33 << "]" << "\n";
+}
+
+int test_quaternion()
+{
+	// Blog: https://blog.csdn.net/fengbingchun/article/details/130790531
+	std::vector<double> data = {
+		2.044289726145588e-004, -0.2587487517264626, -0.9659446369688031,
+		-0.9993063898830017, -3.602307923217642e-002, 9.438056030485108e-003,
+		-3.723838540803551e-002, 0.9652727185840433, -0.2585766451355823
+	};
+
+	// 1. rotate matrix to quaternion(Hamilton)
+	cv::Mat mat(3, 3, CV_64FC1, data.data());
+	cv::Quatd q1 = cv::Quatd::createFromRotMat(mat);
+	std::cout.precision(16);
+	std::cout << "w:" << q1.w << ", x:" << q1.x << ", y:" << q1.y << ", z:" << q1.z << "\n";
+
+	// 2. quaternion(Hamilton) to rotate matrix
+	cv::Quatd q2 = cv::Quatd(q1.w, q1.x, q1.y, q1.z);
+	cv::Matx<double, 3, 3> R = q2.toRotMat3x3();
+	std::cout << R << "\n";
+
+	double arr[4] = { q1.w, q1.x, q1.y, q1.z };
+	quaternion_to_rotate_matrix(arr);
+
+	return 0;
+}
 
 int test_loss_function()
 {

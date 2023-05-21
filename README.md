@@ -1,4 +1,4 @@
-# NN_Test
+# NN_Test #
 **This project contains some neural network code(Note: depend on opencv):**
 - neural network code(C++)
 	- Perceptron
@@ -94,7 +94,7 @@
 	- NN support cmake build(file position: prj/linux_cmake_NN)
 
 **Windows VS Screenshot:**
-![](https://github.com/fengbingchun/NN_Test/blob/master/prj/x86_x64_vc12/Screenshot.png)
+![](prj/x86_x64_vc12/Screenshot.png)
 
 
 **Blog:** [fengbingchun](http://blog.csdn.net/fengbingchun/article/category/780354)
