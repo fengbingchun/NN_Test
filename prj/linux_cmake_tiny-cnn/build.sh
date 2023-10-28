@@ -35,7 +35,7 @@ new_dir_name=${dir_name}/build
 mkdir -p ${new_dir_name}
 cd ${new_dir_name}
 #cmake ..
-cmake -DUSE-SSE=ON -DUSE_AVX=ON .. 
+cmake -DUSE-SSE=ON -DUSE_AVX=ON -DOpenCV_DIR=/opt/opencv/4.8.1/release/lib/cmake/opencv4/ ..
 make
 
 cd -

@@ -34,7 +34,7 @@ fi
 new_dir_name=${dir_name}/build
 mkdir -p ${new_dir_name}
 cd ${new_dir_name}
-cmake ..
+cmake -DOpenCV_DIR=/opt/opencv/4.8.1/release/lib/cmake/opencv4/ ..
 make
 
 cd -

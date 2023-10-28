@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -192,7 +193,7 @@ void BP::init()
 
 float BP::calcActivationFunction(float x)
 {
-	return 1.0 / (1.0 + exp(-x)); //formula[4] formula[5] formula[7]
+	return 1.0 / (1.0 + std::exp(-x)); //formula[4] formula[5] formula[7]
 }
 
 void BP::calcHiddenLayer(const int* data)
