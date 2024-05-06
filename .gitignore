@@ -17,3 +17,4 @@
 /prj/linux_cmake_NN/data
 /prj/x86_x64_vc12/.vs
 .vscode
+demo/Python/*.onnx

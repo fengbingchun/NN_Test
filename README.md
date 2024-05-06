@@ -67,18 +67,32 @@
 		- PCA(Principal Components Analysis)
 		- k-means
 - Python code(support windows and linux platform)
-	- Installation(Anaconda)
-		```
-		conda create -n NN_Test python=3.9
-		conda activate NN_Test
-		git clone https://github.com/fengbingchun/NN_Test
-		cd NN_Test/demo/Python
-		pip install -r requirements.txt
-		```
-	- KNN(K-Nearest Neighbor)
-	- Decision Tree(CART)
-	- PCA(Principal Components Analysis)
-	- k-means
+	- Universal Configuration
+		- Installation(Anaconda)
+			```
+			conda create -n NN_Test python=3.9
+			conda activate NN_Test
+			pip install -r requirements.txt
+			git clone https://github.com/fengbingchun/NN_Test
+			cd NN_Test/demo/Python
+			```
+		- Code
+			- KNN(K-Nearest Neighbor)
+			- Decision Tree(CART)
+			- PCA(Principal Components Analysis)
+			- k-means
+	- MediaPipe
+		- Installation(Anaconda)
+			```
+			conda create -n MediaPipe python=3.9
+			conda activate MediaPipe
+			pip install mediapipe
+			pip install requests
+			git clone https://github.com/fengbingchun/NN_Test
+			cd NN_Test/demo/Python
+			```
+		- Code
+			- [face monocular ranging](demo/Python/test_mediapipe_midas_face_monocular_ranging.py)
 - Database convert to Images or Images conver to Database
 	- MNIST
 	- CIFAR10/CIFAR100
