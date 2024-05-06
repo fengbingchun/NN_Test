@@ -77,10 +77,13 @@
 			cd NN_Test/demo/Python
 			```
 		- Code
-			- KNN(K-Nearest Neighbor)
-			- Decision Tree(CART)
-			- PCA(Principal Components Analysis)
+			- [KNN(K-Nearest Neighbor)](demo/Python/test_knn_classification.py)
+			- [Decision Tree(CART)](demo/Python/test_decision_tree_classification.py)
+			- [PCA(Principal Components Analysis)](demo/Python/test_pca.py)
 			- k-means
+				- [k-means](demo/Python/test_k-means.py)
+				- [k-menas opencv](demo/Python/test_k-means_opencv.py)
+			- [txt to csv](demo/Python/test_txt_to_csv_convert.py)
 	- MediaPipe
 		- Installation(Anaconda)
 			```

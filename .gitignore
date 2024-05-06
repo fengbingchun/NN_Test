@@ -18,3 +18,4 @@
 /prj/x86_x64_vc12/.vs
 .vscode
 demo/Python/*.onnx
+data/database/BacknoteDataset/*.csv
