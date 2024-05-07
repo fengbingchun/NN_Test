@@ -5,10 +5,10 @@
 
 int main()
 {
-	int ret = test_logistic_regression2_gradient_descent();
+	int ret = test_monocular_ranging_face_triangle_similarity();
 
-	if (ret == 0) fprintf(stdout, "========== test success ==========\n");
-	else fprintf(stderr, "########## test fail ##########\n");
+	if (ret == 0) std::cout << "========== test success ==========\n";
+	else std::cerr << "########## test fail ##########\n";
 
 	return 0;
 }

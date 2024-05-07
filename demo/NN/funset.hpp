@@ -1,6 +1,7 @@
 #ifndef FBC_TEST_NN_FUNSET_HPP_
 #define FBC_TEST_NN_FUNSET_HPP_
 
+int test_monocular_ranging_face_triangle_similarity();
 int test_logistic_regression2_gradient_descent();
 int test_batch_normalization(); // Batch Normalization
 int test_lrn(); // Local Response Normalization

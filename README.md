@@ -55,6 +55,7 @@
 		- BN(Batch Normalization)
 	- common algorithm
 		- Brute Force(string match)
+		- Triangle similarity(monocular ranging)
 - open source library's usage(C++)
 	- tiny-cnn [GitHub](https://github.com/nyanp/tiny-cnn)
 	- tiny-dnn [GitHub](https://github.com/tiny-dnn/tiny-dnn)
