@@ -110,6 +110,7 @@
       <ObjectFileName>.\../../../obj/dbg/x64_vc12/tiny-dnn\</ObjectFileName>
       <ProgramDataBaseFileName>.\../../../obj/dbg/x64_vc12/tiny-dnn\</ProgramDataBaseFileName>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -154,6 +155,7 @@
       <AssemblerListingLocation>.\../../../obj/rel/x64_vc12/tiny-dnn\</AssemblerListingLocation>
       <ObjectFileName>.\../../../obj/rel/x64_vc12/tiny-dnn\</ObjectFileName>
       <ProgramDataBaseFileName>.\../../../obj/rel/x64_vc12/tiny-dnn\</ProgramDataBaseFileName>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -109,6 +109,7 @@
       <ObjectFileName>.\../../../obj/dbg/x64_vc12/NN\</ObjectFileName>
       <ProgramDataBaseFileName>.\../../../obj/dbg/x64_vc12/NN\</ProgramDataBaseFileName>
       <AdditionalIncludeDirectories>../../../src/NN;D:\soft\opencv\build\include;../../../src/libsvm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,6 +158,7 @@
       </OpenMPSupport>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
