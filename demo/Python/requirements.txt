@@ -2,3 +2,4 @@ opencv-python
 matplotlib
 pyquaternion
 pandas
+colorama

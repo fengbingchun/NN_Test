@@ -19,3 +19,7 @@
 .vscode
 demo/Python/*.onnx
 data/database/BacknoteDataset/*.csv
+demo/Python/*.log
+demo/Python/*.pt
+demo/Python/datasets
+demo/Python/runs
