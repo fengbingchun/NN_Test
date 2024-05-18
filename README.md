@@ -85,7 +85,6 @@
 				- [k-means](demo/Python/test_k-means.py)
 				- [k-menas opencv](demo/Python/test_k-means_opencv.py)
 			- [txt to csv](demo/Python/test_txt_to_csv_convert.py)
-			- [LabelMe JSON to YOLOv8 TXT](demo/Python/test_labelme2yolov8.py)
 	- MediaPipe
 		- Installation(Anaconda)
 			```
@@ -98,6 +97,26 @@
 			```
 		- Code
 			- [face monocular ranging](demo/Python/test_mediapipe_midas_face_monocular_ranging.py)
+	- Ultralytics
+		- Installation(Anaconda)
+			```
+			# cpu
+			conda create --name ultralytics-env python=3.8 -y
+			conda activate ultralytics-env
+			pip install ultralytics
+
+			# cuda
+			# install cuda 11.8
+			# install cudnn v8.9.7
+			conda create --name ultralytics-env-cuda python=3.8 -y
+			conda activate ultralytics-env-cuda
+			conda install -c pytorch -c nvidia -c conda-forge pytorch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 pytorch-cuda=11.8 ultralytics # pytorch 2.2.2
+
+			git clone https://github.com/fengbingchun/NN_Test
+			cd NN_Test/demo/Python
+			```
+		- Code
+			- [LabelMe JSON to YOLOv8 TXT](demo/Python/test_labelme2yolov8.py)
 - Database convert to Images or Images conver to Database
 	- MNIST
 	- CIFAR10/CIFAR100
