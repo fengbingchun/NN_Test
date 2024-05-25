@@ -2,6 +2,8 @@ import argparse
 import colorama
 from ultralytics import YOLO
 
+# Blog: https://blog.csdn.net/fengbingchun/article/details/139203567
+
 def parse_args():
 	parser = argparse.ArgumentParser(description="YOLOv8 object detect")
 	parser.add_argument("--yaml", required=True, type=str, help="yaml file")
@@ -16,7 +18,9 @@ def train(yaml, epochs):
 
 	metrics = model.val() # It'll automatically evaluate the data you trained, no arguments needed, dataset and settings remembered
 
-	model.export(format="onnx", dynamic=True) # export the model
+	model.export(format="onnx") #, dynamic=True) # export the model, cannot specify dynamic=True, opencv does not support
+	# model.export(format="onnx", opset=12, simplify=True, dynamic=False, imgsz=640)
+	model.export(format="torchscript") # libtorch
 
 if __name__ == "__main__":
 	colorama.init()

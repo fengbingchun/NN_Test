@@ -78,6 +78,9 @@
     <ClCompile Include="..\..\..\demo\NN\monocular_ranging.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\demo\NN\yolo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\demo\NN\funset.hpp">
@@ -135,6 +138,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\NN\batch_normalization.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\demo\NN\yolo.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

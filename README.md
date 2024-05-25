@@ -1,5 +1,5 @@
 # NN_Test #
-**This project contains some neural network code(Note: depend on opencv):**
+**This project contains some neural network code(Note: depend on opencv/libtorch/onnxruntime):**
 - neural network code(C++)
 	- Perceptron
 	- BP(Back Propagation)
@@ -12,6 +12,7 @@
 	- single hidden layer(two categories)
 	- K-Means
 	- Decision Tree(CART)
+	- YOLOv8
 - mathematical formula's implement with C++
 	- Linear Algebra
 		- transpose
@@ -117,6 +118,7 @@
 			```
 		- Code
 			- [LabelMe JSON to YOLOv8 TXT](demo/Python/test_labelme2yolov8.py)
+			- [YOLOv8 train](demo/Python/test_yolov8_train.py)
 - Database convert to Images or Images conver to Database
 	- MNIST
 	- CIFAR10/CIFAR100

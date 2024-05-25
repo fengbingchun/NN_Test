@@ -3,8 +3,12 @@ from ultralytics import settings
 from ultralytics.utils.benchmarks import benchmark
 import torch
 import colorama
+import ultralytics
 
 # Blog: https://blog.csdn.net/fengbingchun/article/details/139031247
+
+def checks():
+	ultralytics.checks() # check software and hardware
 
 def cuda_available():
 	print("cuda is available:", torch.cuda.is_available())
@@ -38,8 +42,9 @@ def yolov8_detect():
 	# predict with the model
 	# results = model("../../data/images/face/1.jpg")
 	# all Ultralytics predict() calls will return a list of Results objects
-	results = model.predict("../../data/images/face")
+	results = model.predict("../../data/images/predict")
 
+	name = 1
 	for result in results:
 		result.show()
 		print("orig shape:", result.orig_shape) # (height, width)
@@ -47,6 +52,8 @@ def yolov8_detect():
 		print("boxes cls:", result.boxes.cls) # tensor:object categories
 		print("boxes conf:", result.boxes.conf) # tensor:confidence
 		# result.save(filename="../../data/result_3.png")
+		result.save(filename="../../data/result_"+str(name)+".png")
+		name = name + 1
 
 def yolov8_settings():
 	# view all settings
@@ -75,7 +82,7 @@ def yolov8_detect_train():
 	# print("metrics.box.maps: ", metrics.box.maps)    # a list contains map50-95 of each category
 
 	# export the model
-	model.export(format="onnx", dynamic=True)
+	model.export(format="onnx")#, dynamic=True) # cannot specify dynamic=True, opencv does not support
 
 def yolov8_benchmark():
 	if torch.cuda.is_available():
@@ -94,5 +101,6 @@ if __name__ == "__main__":
 	# yolov8_pose()
 	# yolov8_obb()
 	# yolov8_tune()
+	# checks()
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")
