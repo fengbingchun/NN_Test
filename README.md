@@ -12,7 +12,7 @@
 	- single hidden layer(two categories)
 	- K-Means
 	- Decision Tree(CART)
-	- YOLOv8
+	- YOLOv8(OpenCV DNN, libtorch)
 - mathematical formula's implement with C++
 	- Linear Algebra
 		- transpose

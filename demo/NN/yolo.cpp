@@ -427,6 +427,8 @@ int test_yolov8_detect_opencv()
 	return 0;
 }
 
+/////////////////////////////////////////////////////////////////
+// Blog: https://blog.csdn.net/fengbingchun/article/details/139217313
 int test_yolov8_detect_libtorch()
 {
 	// reference: ultralytics/examples/YOLOv8-LibTorch-CPP-Inference
