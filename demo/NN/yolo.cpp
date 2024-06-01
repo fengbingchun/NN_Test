@@ -12,10 +12,9 @@
 #include <random>
 #include <map>
 #include <memory>
+#include <chrono>
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/dnn.hpp>
 
 #include <torch/torch.h>
 #include <torch/script.h>
@@ -110,8 +109,8 @@ void draw_boxes(const std::vector<std::string>& classes, const std::vector<int>&
 		cv::putText(frame, class_string, cv::Point(boxes[i].x + 5, boxes[i].y - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
 	}
 
-	cv::imshow("Inference", frame);
-	cv::waitKey(-1);
+	//cv::imshow("Inference", frame);
+	//cv::waitKey(-1);
 
 	std::string path(result_dir);
 	path += "/" + name;
@@ -304,6 +303,57 @@ void image_to_blob(const cv::Mat& src, T* blob)
 	}
 }
 
+void post_process(const float* data, int rows, int stride, float xfactor, float yfactor, const std::vector<std::string>& classes,
+	cv::Mat& frame, const std::string& name)
+{
+	std::vector<int> class_ids;
+	std::vector<float> confidences;
+	std::vector<cv::Rect> boxes;
+
+	for (auto i = 0; i < rows; ++i) {
+		const float* classes_scores = data + 4;
+
+		cv::Mat scores(1, classes.size(), CV_32FC1, (float*)classes_scores);
+		cv::Point class_id;
+		double max_class_score;
+
+		cv::minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
+
+		if (max_class_score > model_score_threshold) {
+			confidences.push_back(max_class_score);
+			class_ids.push_back(class_id.x);
+
+			float x = data[0];
+			float y = data[1];
+			float w = data[2];
+			float h = data[3];
+
+			int left = int((x - 0.5 * w) * xfactor);
+			int top = int((y - 0.5 * h) * yfactor);
+
+			int width = int(w * xfactor);
+			int height = int(h * yfactor);
+
+			boxes.push_back(cv::Rect(left, top, width, height));
+		}
+
+		data += stride;
+	}
+
+	std::vector<int> nms_result;
+	cv::dnn::NMSBoxes(boxes, confidences, model_score_threshold, model_nms_threshold, nms_result);
+
+	std::vector<int> ids;
+	std::vector<float> confs;
+	std::vector<cv::Rect> rects;
+	for (size_t i = 0; i < nms_result.size(); ++i) {
+		ids.emplace_back(class_ids[nms_result[i]]);
+		confs.emplace_back(confidences[nms_result[i]]);
+		rects.emplace_back(boxes[nms_result[i]]);
+	}
+	draw_boxes(classes, ids, confs, rects, name, frame);
+}
+
 } // namespace
 
 /////////////////////////////////////////////////////////////////
@@ -312,6 +362,8 @@ int test_yolov8_detect_opencv()
 {
 	// reference: ultralytics/examples/YOLOv8-CPP-Inference
 	namespace fs = std::filesystem;
+
+	//std::cout << "opencv bulild info: " << cv::getBuildInformation() << std::endl;
 
 	auto net = cv::dnn::readNetFromONNX(onnx_file);
 	if (net.empty()) {
@@ -350,6 +402,7 @@ int test_yolov8_detect_opencv()
 			continue;
 		}
 
+		auto tstart = std::chrono::high_resolution_clock::now();
 		cv::Mat bgr = modify_image_size(frame);
 
 		cv::Mat blob;
@@ -376,52 +429,10 @@ int test_yolov8_detect_opencv()
 		float x_factor = bgr.cols * 1.f / image_size[1];
 		float y_factor = bgr.rows * 1.f / image_size[0];
 
-		std::vector<int> class_ids;
-		std::vector<float> confidences;
-		std::vector<cv::Rect> boxes;
+		auto tend = std::chrono::high_resolution_clock::now();
+		std::cout << "elapsed millisenconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(tend - tstart).count() << " ms" << std::endl;
 
-		for (auto i = 0; i < rows; ++i) {
-			float* classes_scores = data + 4;
-
-			cv::Mat scores(1, classes.size(), CV_32FC1, classes_scores);
-			cv::Point class_id;
-			double max_class_score;
-
-			cv::minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
-
-			if (max_class_score > model_score_threshold) {
-				confidences.push_back(max_class_score);
-				class_ids.push_back(class_id.x);
-
-				float x = data[0];
-				float y = data[1];
-				float w = data[2];
-				float h = data[3];
-
-				int left = int((x - 0.5 * w) * x_factor);
-				int top = int((y - 0.5 * h) * y_factor);
-
-				int width = int(w * x_factor);
-				int height = int(h * y_factor);
-
-				boxes.push_back(cv::Rect(left, top, width, height));
-			}
-
-			data += dimensions;
-		}
-
-		std::vector<int> nms_result;
-		cv::dnn::NMSBoxes(boxes, confidences, model_score_threshold, model_nms_threshold, nms_result);
-
-		std::vector<int> ids;
-		std::vector<float> confs;
-		std::vector<cv::Rect> rects;
-		for (size_t i = 0; i < nms_result.size(); ++i) {
-			ids.emplace_back(class_ids[nms_result[i]]);
-			confs.emplace_back(confidences[nms_result[i]]);
-			rects.emplace_back(boxes[nms_result[i]]);
-		}
-		draw_boxes(classes, ids, confs, rects, key, frame);
+		post_process(data, rows, dimensions, x_factor, y_factor, classes, frame, key);
 	}
 
 	return 0;
@@ -509,6 +520,8 @@ int test_yolov8_detect_libtorch()
 	return 0;
 }
 
+/////////////////////////////////////////////////////////////////
+// Blog: https://blog.csdn.net/fengbingchun/article/details/139371680
 int test_yolov8_detect_onnxruntime()
 {
 	// reference: ultralytics/examples/YOLOv8-ONNXRuntime-CPP
@@ -563,6 +576,7 @@ int test_yolov8_detect_onnxruntime()
 				continue;
 			}
 
+			auto tstart = std::chrono::high_resolution_clock::now();
 			cv::Mat rgb;
 			auto resize_scales = image_preprocess(frame, rgb);
 			image_to_blob(rgb, blob.get());
@@ -574,57 +588,16 @@ int test_yolov8_detect_onnxruntime()
 			auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
 			std::vector<int64_t> output_node_dims = tensor_info.GetShape();
 			auto output = output_tensors.front().GetTensorMutableData<float>();
-			int stride_num = output_node_dims[2]; // note: index: 1 <==> 2 ; yolov5/yolov8
-			int signal_result_num = output_node_dims[1];
+			int stride_num = output_node_dims[1];
+			int signal_result_num = output_node_dims[2];
 			cv::Mat raw_data = cv::Mat(stride_num, signal_result_num, CV_32F, output);
-
-			std::vector<int> class_ids;
-			std::vector<float> confidences;
-			std::vector<cv::Rect> boxes;
-
+			raw_data = raw_data.t();
 			float* data = (float*)raw_data.data;
-			for (auto i = 0; i < stride_num; ++i) {
-				float* classes_scores = data + 4;
 
-				cv::Mat scores(1, classes.size(), CV_32FC1, classes_scores);
-				cv::Point class_id;
-				double max_class_score;
+			auto tend = std::chrono::high_resolution_clock::now();
+			std::cout << "elapsed millisenconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(tend - tstart).count() << " ms" << std::endl;
 
-				cv::minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
-
-				if (max_class_score/100. > model_score_threshold) {
-					confidences.push_back(max_class_score/100.);
-					class_ids.push_back(class_id.x);
-
-					float x = data[0];
-					float y = data[1];
-					float w = data[2];
-					float h = data[3];
-
-					int left = int((x - 0.5 * w) * resize_scales);
-					int top = int((y - 0.5 * h) * resize_scales);
-
-					int width = int(w * resize_scales);
-					int height = int(h * resize_scales);
-
-					boxes.push_back(cv::Rect(left, top, width, height));
-				}
-
-				data += signal_result_num;
-			}
-
-			std::vector<int> nms_result;
-			cv::dnn::NMSBoxes(boxes, confidences, model_score_threshold, model_nms_threshold, nms_result);
-
-			std::vector<int> ids;
-			std::vector<float> confs;
-			std::vector<cv::Rect> rects;
-			for (size_t i = 0; i < nms_result.size(); ++i) {
-				ids.emplace_back(class_ids[nms_result[i]]);
-				confs.emplace_back(confidences[nms_result[i]]);
-				rects.emplace_back(boxes[nms_result[i]]);
-			}
-			draw_boxes(classes, ids, confs, rects, key, frame);
+			post_process(data, signal_result_num, stride_num, resize_scales, resize_scales, classes, frame, key);
 		}
 	}
 	catch (const std::exception& e) {

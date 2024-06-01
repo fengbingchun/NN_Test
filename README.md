@@ -12,7 +12,7 @@
 	- single hidden layer(two categories)
 	- K-Means
 	- Decision Tree(CART)
-	- YOLOv8(OpenCV DNN, libtorch)
+	- YOLOv8(OpenCV DNN, libtorch, onnxruntime)
 - mathematical formula's implement with C++
 	- Linear Algebra
 		- transpose
@@ -117,8 +117,10 @@
 			cd NN_Test/demo/Python
 			```
 		- Code
-			- [LabelMe JSON to YOLOv8 TXT](demo/Python/test_labelme2yolov8.py)
+			- [LabelMe JSON to YOLOv8 TXT: Detect](demo/Python/test_labelme2yolov8_detect.py)
+			- [EISeg JSON to YOLOV8 TXT: Segment](demo/Python/test_eiseg2yolov8_segment.py)
 			- [YOLOv8 train](demo/Python/test_yolov8_train.py)
+			- [YOLOv8 predict](demo/Python/test_yolov8_predict.py)
 - Database convert to Images or Images conver to Database
 	- MNIST
 	- CIFAR10/CIFAR100
