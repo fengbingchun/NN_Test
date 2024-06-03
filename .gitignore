@@ -23,3 +23,5 @@ demo/Python/*.log
 demo/Python/*.pt
 demo/Python/datasets
 demo/Python/runs
+demo/Python/*.yaml
+demo/Python/result*

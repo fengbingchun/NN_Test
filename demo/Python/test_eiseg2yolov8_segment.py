@@ -6,6 +6,8 @@ import random
 import shutil
 import cv2
 
+# Blog: https://blog.csdn.net/fengbingchun/article/details/139377787
+
 # supported image formats
 img_formats = (".bmp", ".jpeg", ".jpg", ".png", ".webp")
 

@@ -3,6 +3,8 @@ import argparse
 from ultralytics import YOLO
 import os
 
+# Blog: https://blog.csdn.net/fengbingchun/article/details/139377787
+
 def parse_args():
 	parser = argparse.ArgumentParser(description="YOLOv8 predict")
 	parser.add_argument("--model", required=True, type=str, help="model file")

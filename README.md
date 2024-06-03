@@ -121,6 +121,7 @@
 			- [EISeg JSON to YOLOV8 TXT: Segment](demo/Python/test_eiseg2yolov8_segment.py)
 			- [YOLOv8 train](demo/Python/test_yolov8_train.py)
 			- [YOLOv8 predict](demo/Python/test_yolov8_predict.py)
+			- [YOLOv8 segment onnxruntime predict](demo/Python/test_yolov8_segment_onnxruntime_predict.py)
 - Database convert to Images or Images conver to Database
 	- MNIST
 	- CIFAR10/CIFAR100
