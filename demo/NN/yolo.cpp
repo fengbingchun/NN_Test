@@ -24,9 +24,10 @@
 namespace {
 
 constexpr bool cuda_enabled{ false };
-constexpr int image_size[2]{ 640, 640 }; // {height,width}, input shape (1, 3, 640, 640) BCHW and output shape(s) (1, 6, 8400)
-constexpr float model_score_threshold{ 0.45 }; // confidence threshold
-constexpr float model_nms_threshold{ 0.50 }; // iou threshold
+constexpr int input_size[2]{ 640, 640 }; // {height,width}, input shape (1, 3, 640, 640) BCHW and output shape(s): detect:(1,6,8400); segment:(1,38,8400),(1,32,160,160)
+constexpr float confidence_threshold{ 0.45 }; // confidence threshold
+constexpr float iou_threshold{ 0.50 }; // iou threshold
+constexpr float mask_threshold{ 0.50 }; // segment mask threshold
 
 #ifdef _MSC_VER
 constexpr char* onnx_file{ "../../../data/best.onnx" };
@@ -120,12 +121,9 @@ void draw_boxes(const std::vector<std::string>& classes, const std::vector<int>&
 float letter_box(const cv::Mat& src, cv::Mat& dst, const std::vector<int>& imgsz)
 {
 	if (src.cols == imgsz[1] && src.rows == imgsz[0]) {
-		if (src.data == dst.data) {
-			return 1.;
-		} else {
+		if (src.data != dst.data);
 			dst = src.clone();
-			return 1.;
-		}
+		return 1.;
 	}
 
 	auto resize_scale = std::min(imgsz[0] * 1. / src.rows, imgsz[1] * 1. / src.cols);
@@ -264,6 +262,7 @@ torch::Tensor non_max_suppression(torch::Tensor& prediction, float conf_thres = 
 
 std::wstring ctow(const char* str)
 {
+	//std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(std::string); // std::string -> std::wstring
 	constexpr size_t len{ 128 };
 	wchar_t wch[len];
 	swprintf(wch, len, L"%hs", str);
@@ -274,21 +273,20 @@ std::wstring ctow(const char* str)
 float image_preprocess(const cv::Mat& src, cv::Mat& dst)
 {
 	cv::cvtColor(src, dst, cv::COLOR_BGR2RGB);
-	float resize_scales{ 1. };
 
-	if (src.cols >= src.rows) {
-		resize_scales = src.cols * 1.f / image_size[1];
-		cv::resize(dst, dst, cv::Size(image_size[1], static_cast<int>(src.rows / resize_scales)));
-	} else {
-		resize_scales = src.rows * 1.f / image_size[0];
-		cv::resize(dst, dst, cv::Size(static_cast<int>(src.cols / resize_scales), image_size[0]));
-	}
+	float scalex = src.cols * 1.f / input_size[1];
+	float scaley = src.rows * 1.f / input_size[0];
 
-	cv::Mat tmp = cv::Mat::zeros(image_size[0], image_size[1], CV_8UC3);
+	if (scalex > scaley)
+		cv::resize(dst, dst, cv::Size(input_size[1], static_cast<int>(src.rows / scalex)));
+	else
+		cv::resize(dst, dst, cv::Size(static_cast<int>(src.cols / scaley), input_size[0]));
+
+	cv::Mat tmp = cv::Mat::zeros(input_size[0], input_size[1], CV_8UC3);
 	dst.copyTo(tmp(cv::Rect(0, 0, dst.cols, dst.rows)));
 	dst = tmp;
 
-	return resize_scales;
+	return (scalex > scaley) ? scalex : scaley;
 }
 
 template<typename T>
@@ -304,7 +302,7 @@ void image_to_blob(const cv::Mat& src, T* blob)
 }
 
 void post_process(const float* data, int rows, int stride, float xfactor, float yfactor, const std::vector<std::string>& classes,
-	cv::Mat& frame, const std::string& name)
+	const std::string& name, cv::Mat& frame)
 {
 	std::vector<int> class_ids;
 	std::vector<float> confidences;
@@ -319,7 +317,7 @@ void post_process(const float* data, int rows, int stride, float xfactor, float 
 
 		cv::minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
 
-		if (max_class_score > model_score_threshold) {
+		if (max_class_score > confidence_threshold) {
 			confidences.push_back(max_class_score);
 			class_ids.push_back(class_id.x);
 
@@ -341,7 +339,7 @@ void post_process(const float* data, int rows, int stride, float xfactor, float 
 	}
 
 	std::vector<int> nms_result;
-	cv::dnn::NMSBoxes(boxes, confidences, model_score_threshold, model_nms_threshold, nms_result);
+	cv::dnn::NMSBoxes(boxes, confidences, confidence_threshold, iou_threshold, nms_result);
 
 	std::vector<int> ids;
 	std::vector<float> confs;
@@ -352,6 +350,128 @@ void post_process(const float* data, int rows, int stride, float xfactor, float 
 		rects.emplace_back(boxes[nms_result[i]]);
 	}
 	draw_boxes(classes, ids, confs, rects, name, frame);
+}
+
+void get_masks(const cv::Mat& features, const cv::Mat& proto, const std::vector<int>& output1_sizes, const cv::Mat& frame, const cv::Rect box, cv::Mat& mk)
+{
+	const cv::Size shape_src(frame.cols, frame.rows), shape_input(input_size[1], input_size[0]), shape_mask(output1_sizes[3], output1_sizes[2]);
+
+	cv::Mat res = (features * proto).t();
+	res = res.reshape(1, { shape_mask.height, shape_mask.width });
+	// apply sigmoid to the mask
+	cv::exp(-res, res);
+	res = 1.0 / (1.0 + res);
+	cv::resize(res, res, shape_input);
+
+	float scalex = shape_src.width * 1.0 / shape_input.width;
+	float scaley = shape_src.height * 1.0 / shape_input.height;
+	cv::Mat tmp;
+	if (scalex > scaley)
+		cv::resize(res, tmp, cv::Size(shape_src.width, static_cast<int>(shape_input.height * scalex)));
+	else
+		cv::resize(res, tmp, cv::Size(static_cast<int>(shape_input.width * scaley), shape_src.height));
+
+	cv::Mat dst = tmp(cv::Rect(0, 0, shape_src.width, shape_src.height));
+	mk = dst(box) > mask_threshold;
+}
+
+void draw_boxes_mask(const std::vector<std::string>& classes, const std::vector<int>& ids, const std::vector<float>& confidences,
+	const std::vector<cv::Rect>& boxes, const std::vector<cv::Mat>& masks, const std::string& name, cv::Mat& frame)
+{
+	std::cout << "image name: " << name << ", number of detections: " << ids.size() << std::endl;
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> dis(100, 255);
+	cv::Mat mk = frame.clone();
+
+	std::vector<cv::Scalar> colors;
+	for (auto i = 0; i < classes.size(); ++i)
+		colors.emplace_back(cv::Scalar(dis(gen), dis(gen), dis(gen)));
+
+	for (auto i = 0; i < ids.size(); ++i) {
+		cv::rectangle(frame, boxes[i], colors[ids[i]], 2);
+
+		std::string class_string = classes[ids[i]] + ' ' + std::to_string(confidences[i]).substr(0, 4);
+		cv::Size text_size = cv::getTextSize(class_string, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
+		cv::Rect text_box(boxes[i].x, boxes[i].y - 40, text_size.width + 10, text_size.height + 20);
+
+		cv::rectangle(frame, text_box, colors[ids[i]], cv::FILLED);
+		cv::putText(frame, class_string, cv::Point(boxes[i].x + 5, boxes[i].y - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
+
+		mk(boxes[i]).setTo(colors[ids[i]], masks[i]);
+	}
+
+	cv::addWeighted(frame, 0.5, mk, 0.5, 0, frame);
+
+	//cv::imshow("Inference", frame);
+	//cv::waitKey(-1);
+
+	std::string path(result_dir);
+	cv::imwrite(path + "/" + name, frame);
+}
+
+void post_process_mask(const cv::Mat& output0, const cv::Mat& output1, const std::vector<int>& output1_sizes, const std::vector<std::string>& classes, const std::string& name, cv::Mat& frame)
+{
+	std::vector<int> class_ids;
+	std::vector<float> confidences;
+	std::vector<cv::Rect> boxes;
+	std::vector<std::vector<float>> masks;
+
+	float scalex = frame.cols * 1.f / input_size[1]; // note: image_preprocess function
+	float scaley = frame.rows * 1.f / input_size[0];
+	auto scale = (scalex > scaley) ? scalex : scaley;
+
+	const float* data = (float*)output0.data;
+	for (auto i = 0; i < output0.rows; ++i) {
+		cv::Mat scores(1, classes.size(), CV_32FC1, (float*)data + 4);
+		cv::Point class_id;
+		double max_class_score;
+
+		cv::minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
+
+		if (max_class_score > confidence_threshold) {
+			confidences.emplace_back(max_class_score);
+			class_ids.emplace_back(class_id.x);
+			masks.emplace_back(std::vector<float>(data + 4 + classes.size(), data + output0.cols)); // 32
+
+			float x = data[0];
+			float y = data[1];
+			float w = data[2];
+			float h = data[3];
+
+			int left = std::max(0, std::min(int((x - 0.5 * w) * scale), frame.cols));
+			int top = std::max(0, std::min(int((y - 0.5 * h) * scale), frame.rows));
+			int width = std::max(0, std::min(int(w * scale), frame.cols - left));
+			int height = std::max(0, std::min(int(h * scale), frame.rows - top));
+			boxes.emplace_back(cv::Rect(left, top, width, height));
+		}
+
+		data += output0.cols;
+	}
+
+	std::vector<int> nms_result;
+	cv::dnn::NMSBoxes(boxes, confidences, confidence_threshold, iou_threshold, nms_result);
+
+	cv::Mat proto = output1.reshape(0, { output1_sizes[1], output1_sizes[2] * output1_sizes[3] });
+
+	std::vector<int> ids;
+	std::vector<float> confs;
+	std::vector<cv::Rect> rects;
+	std::vector<cv::Mat> mks;
+	for (size_t i = 0; i < nms_result.size(); ++i) {
+		auto index = nms_result[i];
+		ids.emplace_back(class_ids[index]);
+		confs.emplace_back(confidences[index]);
+		boxes[index] = boxes[index] & cv::Rect(0, 0, frame.cols, frame.rows);
+
+		cv::Mat mk;
+		get_masks(cv::Mat(masks[index]).t(), proto, output1_sizes, frame, boxes[index], mk);
+		mks.emplace_back(mk);
+		rects.emplace_back(boxes[index]);
+	}
+
+	draw_boxes_mask(classes, ids, confs, rects, mks, name, frame);
 }
 
 } // namespace
@@ -406,7 +526,7 @@ int test_yolov8_detect_opencv()
 		cv::Mat bgr = modify_image_size(frame);
 
 		cv::Mat blob;
-		cv::dnn::blobFromImage(bgr, blob, 1.0 / 255.0, cv::Size(image_size[1], image_size[0]), cv::Scalar(), true, false);
+		cv::dnn::blobFromImage(bgr, blob, 1.0 / 255.0, cv::Size(input_size[1], input_size[0]), cv::Scalar(), true, false);
 		net.setInput(blob);
 
 		std::vector<cv::Mat> outputs;
@@ -426,13 +546,13 @@ int test_yolov8_detect_opencv()
 		}
 
 		float* data = (float*)outputs[0].data;
-		float x_factor = bgr.cols * 1.f / image_size[1];
-		float y_factor = bgr.rows * 1.f / image_size[0];
+		float x_factor = bgr.cols * 1.f / input_size[1];
+		float y_factor = bgr.rows * 1.f / input_size[0];
 
 		auto tend = std::chrono::high_resolution_clock::now();
 		std::cout << "elapsed millisenconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(tend - tstart).count() << " ms" << std::endl;
 
-		post_process(data, rows, dimensions, x_factor, y_factor, classes, frame, key);
+		post_process(data, rows, dimensions, x_factor, y_factor, classes, key, frame);
 	}
 
 	return 0;
@@ -483,7 +603,7 @@ int test_yolov8_detect_libtorch()
 			}
 
 			cv::Mat bgr;
-			letter_box(frame, bgr, {image_size[0], image_size[1]});
+			letter_box(frame, bgr, {input_size[0], input_size[1]});
 
 			torch::Tensor tensor = torch::from_blob(bgr.data, { bgr.rows, bgr.cols, 3 }, torch::kByte).to(device);
 			tensor = tensor.toType(torch::kFloat32).div(255);
@@ -515,6 +635,7 @@ int test_yolov8_detect_libtorch()
 		}
 	} catch (const c10::Error& e) {
 		std::cerr << "Error: " << e.msg() << std::endl;
+		return -1;
 	}
 
 	return 0;
@@ -560,8 +681,8 @@ int test_yolov8_detect_onnxruntime()
 			output_node_names.emplace_back(output_node_names_[i].c_str());
 
 		Ort::RunOptions options(nullptr);
-		std::unique_ptr<float[]> blob(new float[image_size[0] * image_size[1] * 3]);
-		std::vector<int64_t> input_node_dims{ 1, 3, image_size[1], image_size[0] };
+		std::unique_ptr<float[]> blob(new float[input_size[0] * input_size[1] * 3]);
+		std::vector<int64_t> input_node_dims{ 1, 3, input_size[1], input_size[0] };
 
 		auto classes = parse_classes_file(classes_file);
 		if (classes.size() == 0) {
@@ -581,8 +702,8 @@ int test_yolov8_detect_onnxruntime()
 			auto resize_scales = image_preprocess(frame, rgb);
 			image_to_blob(rgb, blob.get());
 			Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
-				Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU), blob.get(), 3 * image_size[1] * image_size[0], input_node_dims.data(), input_node_dims.size());
-			auto output_tensors = session.Run(options, input_node_names.data(), &input_tensor, 1, output_node_names.data(), output_node_names.size());
+				Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU), blob.get(), 3 * input_size[1] * input_size[0], input_node_dims.data(), input_node_dims.size());
+			auto output_tensors = session.Run(options, input_node_names.data(), &input_tensor, input_node_names.size(), output_node_names.data(), output_node_names.size());
 
 			Ort::TypeInfo type_info = output_tensors.front().GetTypeInfo();
 			auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
@@ -592,16 +713,273 @@ int test_yolov8_detect_onnxruntime()
 			int signal_result_num = output_node_dims[2];
 			cv::Mat raw_data = cv::Mat(stride_num, signal_result_num, CV_32F, output);
 			raw_data = raw_data.t();
-			float* data = (float*)raw_data.data;
+			const float* data = (float*)raw_data.data;
 
 			auto tend = std::chrono::high_resolution_clock::now();
 			std::cout << "elapsed millisenconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(tend - tstart).count() << " ms" << std::endl;
 
-			post_process(data, signal_result_num, stride_num, resize_scales, resize_scales, classes, frame, key);
+			post_process(data, signal_result_num, stride_num, resize_scales, resize_scales, classes, key, frame);
 		}
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
+		return -1;
+	}
+
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////////
+// Blog: https://blog.csdn.net/fengbingchun/article/details/139551555
+int test_yolov8_segment_onnxruntime()
+{
+	try {
+		Ort::Env env = Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Yolo");
+		Ort::SessionOptions session_option;
+
+		if (cuda_enabled) {
+			OrtCUDAProviderOptions cuda_option;
+			cuda_option.device_id = 0;
+			session_option.AppendExecutionProvider_CUDA(cuda_option);
+		}
+
+		session_option.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+		session_option.SetIntraOpNumThreads(1);
+		session_option.SetLogSeverityLevel(3);
+
+		Ort::Session session(env, ctow(onnx_file).c_str(), session_option);
+		Ort::AllocatorWithDefaultOptions allocator;
+		std::vector<const char*> input_node_names, output_node_names;
+		std::vector<std::string> input_node_names_, output_node_names_;
+
+		for (auto i = 0; i < session.GetInputCount(); ++i) {
+			Ort::AllocatedStringPtr input_node_name = session.GetInputNameAllocated(i, allocator);
+			input_node_names_.emplace_back(input_node_name.get());
+		}
+
+		for (auto i = 0; i < session.GetOutputCount(); ++i) {
+			Ort::AllocatedStringPtr output_node_name = session.GetOutputNameAllocated(i, allocator);
+			output_node_names_.emplace_back(output_node_name.get());
+		}
+
+		for (auto i = 0; i < input_node_names_.size(); ++i)
+			input_node_names.emplace_back(input_node_names_[i].c_str());
+		for (auto i = 0; i < output_node_names_.size(); ++i)
+			output_node_names.emplace_back(output_node_names_[i].c_str());
+
+		std::unique_ptr<float[]> blob(new float[input_size[0] * input_size[1] * 3]);
+		std::vector<int64_t> input_node_dims{ 1, 3, input_size[1], input_size[0] };
+
+		auto classes = parse_classes_file(classes_file);
+		if (classes.size() == 0) {
+			std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+			return -1;
+		}
+
+		if (!std::filesystem::exists(result_dir)) {
+			std::filesystem::create_directories(result_dir);
+		}
+
+		for (const auto& [key, val] : get_dir_images(images_dir)) {
+			cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+			if (frame.empty()) {
+				std::cerr << "Warning: unable to load image: " << val << std::endl;
+				continue;
+			}
+
+			auto tstart = std::chrono::high_resolution_clock::now();
+			cv::Mat rgb;
+			image_preprocess(frame, rgb);
+			image_to_blob(rgb, blob.get());
+			Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
+				Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU), blob.get(), 3 * input_size[1] * input_size[0], input_node_dims.data(), input_node_dims.size());
+			auto output_tensors = session.Run(Ort::RunOptions{nullptr}, input_node_names.data(), &input_tensor, input_node_names.size(), output_node_names.data(), output_node_names.size());
+			if (output_tensors.size() != 2) {
+				std::cerr << "Error: output must have 2 layers: " << output_tensors.size() << std::endl;
+				return -1;
+			}
+
+			// output0
+			std::vector<int64_t> output0_node_dims = output_tensors[0].GetTypeInfo().GetTensorTypeAndShapeInfo().GetShape();
+			auto output0 = output_tensors[0].GetTensorMutableData<float>();
+			cv::Mat data0 = cv::Mat(output0_node_dims[1], output0_node_dims[2], CV_32F, output0);
+			data0 = data0.t();
+
+			// output1
+			std::vector<int64_t> output1_node_dims = output_tensors[1].GetTypeInfo().GetTensorTypeAndShapeInfo().GetShape();
+			auto output1 = output_tensors[1].GetTensorMutableData<float>();
+			std::vector<int> sizes;
+			for (auto val : output1_node_dims)
+				sizes.emplace_back(val);
+			cv::Mat data1 = cv::Mat(sizes, CV_32F, output1);
+
+			auto tend = std::chrono::high_resolution_clock::now();
+			std::cout << "elapsed millisenconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(tend - tstart).count() << " ms" << std::endl;
+
+			post_process_mask(data0, data1, sizes, classes, key, frame);
+		}
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		return -1;
+	}
+
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////////
+// Blog: https://blog.csdn.net/fengbingchun/article/details/139551916
+int test_yolov8_segment_opencv()
+{
+	namespace fs = std::filesystem;
+
+	auto net = cv::dnn::readNetFromONNX(onnx_file);
+	if (net.empty()) {
+		std::cerr << "Error: there are no layers in the network: " << onnx_file << std::endl;
+		return -1;
+	}
+
+	if (cuda_enabled) {
+		net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+		net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+	} else {
+		net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+		net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+	}
+
+	if (!fs::exists(result_dir)) {
+		fs::create_directories(result_dir);
+	}
+
+	auto classes = parse_classes_file(classes_file);
+	if (classes.size() == 0) {
+		std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+		return -1;
+	}
+
+	std::cout << "classes: ";
+	for (const auto& val : classes) {
+		std::cout << val << " ";
+	}
+	std::cout << std::endl;
+
+	for (const auto& [key, val] : get_dir_images(images_dir)) {
+		cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+		if (frame.empty()) {
+			std::cerr << "Warning: unable to load image: " << val << std::endl;
+			continue;
+		}
+
+		auto tstart = std::chrono::high_resolution_clock::now();
+		cv::Mat bgr = modify_image_size(frame);
+
+		cv::Mat blob;
+		cv::dnn::blobFromImage(bgr, blob, 1.0 / 255.0, cv::Size(input_size[1], input_size[0]), cv::Scalar(), true, false);
+		net.setInput(blob);
+
+		std::vector<cv::Mat> outputs;
+		net.forward(outputs, net.getUnconnectedOutLayersNames());
+		if (outputs.size() != 2) {
+			std::cerr << "Error: output must have 2 layers: " << outputs.size() << std::endl;
+			return -1;
+		}
+
+		// output0
+		cv::Mat data0 = cv::Mat(outputs[0].size[1], outputs[0].size[2], CV_32FC1, outputs[0].data).t();
+
+		// output1
+		std::vector<int> sizes;
+		for (int i = 0; i < 4; ++i)
+			sizes.emplace_back(outputs[1].size[i]);
+		cv::Mat data1 = cv::Mat(sizes, CV_32F, outputs[1].data);
+
+		auto tend = std::chrono::high_resolution_clock::now();
+		std::cout << "elapsed millisenconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(tend - tstart).count() << " ms" << std::endl;
+
+		post_process_mask(data0, data1, sizes, classes, key, frame);
+	}
+
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////////
+// Blog: https://blog.csdn.net/fengbingchun/article/details/139552222
+int test_yolov8_segment_libtorch()
+{
+	if (auto flag = torch::cuda::is_available(); flag == true)
+		std::cout << "cuda is available" << std::endl;
+	else
+		std::cout << "cuda is not available" << std::endl;
+
+	torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
+
+	auto classes = parse_classes_file(classes_file);
+	if (classes.size() == 0) {
+		std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+		return -1;
+	}
+
+	std::cout << "classes: ";
+	for (const auto& val : classes) {
+		std::cout << val << " ";
+	}
+	std::cout << std::endl;
+
+	if (!std::filesystem::exists(result_dir)) {
+		std::filesystem::create_directories(result_dir);
+	}
+
+	try {
+		torch::jit::script::Module model;
+		if (torch::cuda::is_available() == true)
+			model = torch::jit::load(torchscript_file, torch::kCUDA);
+		else
+			model = torch::jit::load(torchscript_file, torch::kCPU);
+		model.eval();
+		// note: cpu is normal; gpu is abnormal: the model may not be fully placed on the gpu 
+		// model = torch::jit::load(file); model.to(torch::kCUDA) ==> model = torch::jit::load(file, torch::kCUDA)
+		// model.to(device, torch::kFloat32);
+
+		for (const auto& [key, val] : get_dir_images(images_dir)) {
+			cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+			if (frame.empty()) {
+				std::cerr << "Warning: unable to load image: " << val << std::endl;
+				continue;
+			}
+
+			auto tstart = std::chrono::high_resolution_clock::now();
+			cv::Mat bgr = modify_image_size(frame);
+			cv::resize(bgr, bgr, cv::Size(input_size[1], input_size[0]));
+
+			torch::Tensor tensor = torch::from_blob(bgr.data, { bgr.rows, bgr.cols, 3 }, torch::kByte).to(device);
+			tensor = tensor.toType(torch::kFloat32).div(255);
+			tensor = tensor.permute({ 2, 0, 1 });
+			tensor = tensor.unsqueeze(0);
+			std::vector<torch::jit::IValue> inputs{ tensor };
+
+			// reference: https://medium.com/@psopen11/complete-guide-to-gpu-accelerated-yolov8-segmentation-in-c-via-libtorch-c-dlls-a0e3e6029d82
+			auto output = model.forward(inputs).toTuple()->elements();
+			auto output0 = output[0].toTensor().transpose(1, 2).contiguous().to(torch::kCPU);
+			auto output1 = output[1].toTensor().to(torch::kCPU);
+			if (output0.dim() != 3 || output1.dim() != 4) {
+				std::cerr << "Error: unmatch dimensions: " << output0.dim() << "," << output1.dim() << std::endl;
+			}
+
+			cv::Mat data0 = cv::Mat(output0.size(1), output0.size(2), CV_32FC1, output0.data_ptr<float>());
+
+			std::vector<int> sizes;
+			for (int i = 0; i < 4; ++i)
+				sizes.emplace_back(output1.size(i));
+			cv::Mat data1 = cv::Mat(sizes, CV_32F, output1.data_ptr<float>());
+
+			auto tend = std::chrono::high_resolution_clock::now();
+			std::cout << "elapsed millisenconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(tend - tstart).count() << " ms" << std::endl;
+
+			post_process_mask(data0, data1, sizes, classes, key, frame);
+		}
+	}
+	catch (const c10::Error& e) {
+		std::cerr << "Error: " << e.msg() << std::endl;
 		return -1;
 	}
 

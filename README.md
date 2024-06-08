@@ -13,6 +13,8 @@
 	- K-Means
 	- Decision Tree(CART)
 	- YOLOv8(OpenCV DNN, libtorch, onnxruntime)
+		- Object Detection
+		- Instance Segmentation
 - mathematical formula's implement with C++
 	- Linear Algebra
 		- transpose
