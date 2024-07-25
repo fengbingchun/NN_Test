@@ -1,8 +1,11 @@
 import argparse
 import colorama
 from ultralytics import YOLO
+import torch
 
-# Blog: https://blog.csdn.net/fengbingchun/article/details/139203567
+# Blog:
+# 	https://blog.csdn.net/fengbingchun/article/details/139203567
+#	https://blog.csdn.net/fengbingchun/article/details/140691177
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="YOLOv8 train")
@@ -26,13 +29,22 @@ def train(task, yaml, epochs):
 
 	metrics = model.val() # It'll automatically evaluate the data you trained, no arguments needed, dataset and settings remembered
 
-	model.export(format="onnx") #, dynamic=True) # export the model, cannot specify dynamic=True, opencv does not support
-	# model.export(format="onnx", opset=12, simplify=True, dynamic=False, imgsz=640)
+	# model.export(format="onnx") #, dynamic=True) # export the model, cannot specify dynamic=True, opencv does not support
+	model.export(format="onnx", opset=12, simplify=True, dynamic=False, imgsz=640)
 	model.export(format="torchscript") # libtorch
+	model.export(format="engine", imgsz=640, dynamic=False, verbose=False, batch=1, workspace=2) # tensorrt fp32
+	# model.export(format="engine", imgsz=640, dynamic=True, verbose=True, batch=4, workspace=2, half=True) # tensorrt fp16
+	# model.export(format="engine", imgsz=640, dynamic=True, verbose=True, batch=4, workspace=2, int8=True, data=yaml) # tensorrt int8
 
 if __name__ == "__main__":
+	# python test_yolov8_train.py --yaml datasets/melon_new_detect/melon_new_detect.yaml --epochs 1000 --task detect
 	colorama.init()
 	args = parse_args()
+
+	if torch.cuda.is_available():
+		print("Runging on GPU")
+	else:
+		print("Runting on CPU")
 
 	train(args.task, args.yaml, args.epochs)
 

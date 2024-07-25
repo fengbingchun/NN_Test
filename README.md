@@ -110,7 +110,10 @@
 
 			# cuda
 			# install cuda 11.8
-			# install cudnn v8.9.7
+			# install cudnn v8.7.0: copy the contents of bin,include,lib/x64 cudnn directories to the corresponding CUDA directories
+			# install tensorrt 8.5.3.1:
+			#	copy the contents of bin,include,lib/*.lib,lib/*.dll tensorrt directories to the corresponding CUDA directories
+			# 	enter the python directory: pip install tensorrt-8.5.3.1-cp38-none-win_amd64.whl
 			conda create --name ultralytics-env-cuda python=3.8 -y
 			conda activate ultralytics-env-cuda
 			conda install -c pytorch -c nvidia -c conda-forge pytorch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 pytorch-cuda=11.8 ultralytics # pytorch 2.2.2

@@ -21,6 +21,10 @@ demo/Python/*.onnx
 data/database/BacknoteDataset/*.csv
 demo/Python/*.log
 demo/Python/*.pt
+demo/Python/*.engine
+demo/Python/*.torchscript
+demo/Python/*.jpg
+demo/Python/*.png
 demo/Python/datasets
 demo/Python/runs
 demo/Python/*.yaml
