@@ -11,3 +11,7 @@
 	version: v322
 	date: 2016.12.22
 	url: https://github.com/cjlin1/libsvm/releases
+4. infer:
+	commit: d786f52
+	date: 2023.03.18
+	usl: https://github.com/shouxieai/infer

@@ -13,28 +13,63 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DatasetToImage", "DatasetTo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Math", "Math\Math.vcxproj", "{B06F3D71-5968-4A76-A417-6E05ACE67791}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TensorRT_Infer", "TensorRT_Infer\TensorRT_Infer.vcxproj", "{75F257C3-436E-4BA1-9446-903C5DCF95B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2A7C3308-B53A-43AD-8D96-166E9DE86F55}.Debug|x64.ActiveCfg = Debug|x64
 		{2A7C3308-B53A-43AD-8D96-166E9DE86F55}.Debug|x64.Build.0 = Debug|x64
+		{2A7C3308-B53A-43AD-8D96-166E9DE86F55}.Debug|x86.ActiveCfg = Debug|Win32
+		{2A7C3308-B53A-43AD-8D96-166E9DE86F55}.Debug|x86.Build.0 = Debug|Win32
 		{2A7C3308-B53A-43AD-8D96-166E9DE86F55}.Release|x64.ActiveCfg = Release|x64
 		{2A7C3308-B53A-43AD-8D96-166E9DE86F55}.Release|x64.Build.0 = Release|x64
+		{2A7C3308-B53A-43AD-8D96-166E9DE86F55}.Release|x86.ActiveCfg = Release|Win32
+		{2A7C3308-B53A-43AD-8D96-166E9DE86F55}.Release|x86.Build.0 = Release|Win32
 		{3A4D10C3-354F-4B63-B83C-E3EC67E8920A}.Debug|x64.ActiveCfg = Debug|x64
+		{3A4D10C3-354F-4B63-B83C-E3EC67E8920A}.Debug|x86.ActiveCfg = Debug|Win32
+		{3A4D10C3-354F-4B63-B83C-E3EC67E8920A}.Debug|x86.Build.0 = Debug|Win32
 		{3A4D10C3-354F-4B63-B83C-E3EC67E8920A}.Release|x64.ActiveCfg = Release|x64
+		{3A4D10C3-354F-4B63-B83C-E3EC67E8920A}.Release|x86.ActiveCfg = Release|Win32
+		{3A4D10C3-354F-4B63-B83C-E3EC67E8920A}.Release|x86.Build.0 = Release|Win32
 		{CEF49A5B-F64A-4BD8-866B-9FBAED2C9F7A}.Debug|x64.ActiveCfg = Debug|x64
+		{CEF49A5B-F64A-4BD8-866B-9FBAED2C9F7A}.Debug|x86.ActiveCfg = Debug|Win32
+		{CEF49A5B-F64A-4BD8-866B-9FBAED2C9F7A}.Debug|x86.Build.0 = Debug|Win32
 		{CEF49A5B-F64A-4BD8-866B-9FBAED2C9F7A}.Release|x64.ActiveCfg = Release|x64
+		{CEF49A5B-F64A-4BD8-866B-9FBAED2C9F7A}.Release|x86.ActiveCfg = Release|Win32
+		{CEF49A5B-F64A-4BD8-866B-9FBAED2C9F7A}.Release|x86.Build.0 = Release|Win32
 		{FEE54862-C512-413E-8D21-474C2B05FCC0}.Debug|x64.ActiveCfg = Debug|x64
 		{FEE54862-C512-413E-8D21-474C2B05FCC0}.Debug|x64.Build.0 = Debug|x64
+		{FEE54862-C512-413E-8D21-474C2B05FCC0}.Debug|x86.ActiveCfg = Debug|Win32
+		{FEE54862-C512-413E-8D21-474C2B05FCC0}.Debug|x86.Build.0 = Debug|Win32
 		{FEE54862-C512-413E-8D21-474C2B05FCC0}.Release|x64.ActiveCfg = Release|x64
 		{FEE54862-C512-413E-8D21-474C2B05FCC0}.Release|x64.Build.0 = Release|x64
+		{FEE54862-C512-413E-8D21-474C2B05FCC0}.Release|x86.ActiveCfg = Release|Win32
+		{FEE54862-C512-413E-8D21-474C2B05FCC0}.Release|x86.Build.0 = Release|Win32
 		{B06F3D71-5968-4A76-A417-6E05ACE67791}.Debug|x64.ActiveCfg = Debug|x64
+		{B06F3D71-5968-4A76-A417-6E05ACE67791}.Debug|x86.ActiveCfg = Debug|Win32
+		{B06F3D71-5968-4A76-A417-6E05ACE67791}.Debug|x86.Build.0 = Debug|Win32
 		{B06F3D71-5968-4A76-A417-6E05ACE67791}.Release|x64.ActiveCfg = Release|x64
+		{B06F3D71-5968-4A76-A417-6E05ACE67791}.Release|x86.ActiveCfg = Release|Win32
+		{B06F3D71-5968-4A76-A417-6E05ACE67791}.Release|x86.Build.0 = Release|Win32
+		{75F257C3-436E-4BA1-9446-903C5DCF95B1}.Debug|x64.ActiveCfg = Debug|x64
+		{75F257C3-436E-4BA1-9446-903C5DCF95B1}.Debug|x64.Build.0 = Debug|x64
+		{75F257C3-436E-4BA1-9446-903C5DCF95B1}.Debug|x86.ActiveCfg = Debug|Win32
+		{75F257C3-436E-4BA1-9446-903C5DCF95B1}.Debug|x86.Build.0 = Debug|Win32
+		{75F257C3-436E-4BA1-9446-903C5DCF95B1}.Release|x64.ActiveCfg = Release|x64
+		{75F257C3-436E-4BA1-9446-903C5DCF95B1}.Release|x64.Build.0 = Release|x64
+		{75F257C3-436E-4BA1-9446-903C5DCF95B1}.Release|x86.ActiveCfg = Release|Win32
+		{75F257C3-436E-4BA1-9446-903C5DCF95B1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C804CC36-3049-4997-A435-34B8020942B6}
 	EndGlobalSection
 EndGlobal
