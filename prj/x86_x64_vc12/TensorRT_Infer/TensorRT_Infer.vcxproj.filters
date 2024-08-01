@@ -24,9 +24,15 @@
     <ClInclude Include="..\..\..\src\infer\src\yolo.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\demo\TensorRT_Infer\funset.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\demo\TensorRT_Infer\TensorRT_Infer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\demo\TensorRT_Infer\funset.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -166,11 +166,13 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\demo\TensorRT_Infer\funset.hpp" />
     <ClInclude Include="..\..\..\src\infer\src\cpm.hpp" />
     <ClInclude Include="..\..\..\src\infer\src\infer.hpp" />
     <ClInclude Include="..\..\..\src\infer\src\yolo.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\demo\TensorRT_Infer\funset.cpp" />
     <ClCompile Include="..\..\..\demo\TensorRT_Infer\TensorRT_Infer.cpp" />
   </ItemGroup>
   <ItemGroup>
