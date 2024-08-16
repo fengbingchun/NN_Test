@@ -29,3 +29,7 @@ demo/Python/datasets
 demo/Python/runs
 demo/Python/*.yaml
 demo/Python/result*
+demo/Python/tmp
+demo/Python/test.py
+demo/Python/*.bin
+demo/Python/*.data

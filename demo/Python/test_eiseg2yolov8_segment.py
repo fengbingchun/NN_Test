@@ -16,7 +16,7 @@ def parse_args():
 
 	parser.add_argument("--dir", required=True, type=str, help="images directory, all json files are in the label directory, and generated txt files are also in the label directory")
 	parser.add_argument("--labels", required=True, type=str, help="txt file that hold indexes and labels, one label per line, for example: face 0")
-	parser.add_argument("--val_size", default=0.2, type=float, help="the proportion of the validation set to the overall dataset:[0., 0.5]")
+	parser.add_argument("--val_size", default=0.2, type=float, help="the proportion of the validation set to the overall dataset:[0., 0.2]; the proportion of the test set is the same as the validataion set")
 	parser.add_argument("--name", required=True, type=str, help="the name of the dataset")
 
 	args = parser.parse_args()
@@ -121,10 +121,14 @@ def get_random_sequence(length, val_size):
 	val_sequence = random.sample(numbers, int(length*val_size))
 	# print("val_sequence:", val_sequence)
 
-	train_sequence = [x for x in numbers if x not in val_sequence]
+	test_sequence = [x for x in numbers if x not in val_sequence]
+	test_sequence = random.sample(test_sequence, int(length*val_size))
+	# print("test_sequence:", test_sequence)
+
+	train_sequence = [x for x in numbers if x not in val_sequence and x not in test_sequence]
 	# print("train_sequence:", train_sequence)
 
-	return train_sequence, val_sequence
+	return train_sequence, val_sequence, test_sequence
 
 def get_files_number(dir):
 	count = 0
@@ -135,26 +139,30 @@ def get_files_number(dir):
 	return count
 
 def split_train_val(dir, jsons, name, val_size):
-	if val_size > 0.5 or val_size < 0.01:
-		print(colorama.Fore.RED + "Error: the interval for val_size should be:[0.01, 0.5]:", val_size)
+	if val_size > 0.2 or val_size < 0.:
+		print(colorama.Fore.RED + "Error: the interval for val_size should be:[0., 0.2]:", val_size)
 		raise
 
 	dst_dir_images_train = "datasets/" + name + "/images/train"
 	dst_dir_images_val = "datasets/" + name + "/images/val"
+	dst_dir_images_test = "datasets/" + name + "/images/test"
 	dst_dir_labels_train = "datasets/" + name + "/labels/train"
 	dst_dir_labels_val = "datasets/" + name + "/labels/val"
+	dst_dir_labels_test = "datasets/" + name + "/labels/test"
 
 	try:
 		os.makedirs(dst_dir_images_train) #, exist_ok=True
 		os.makedirs(dst_dir_images_val)
+		os.makedirs(dst_dir_images_test)
 		os.makedirs(dst_dir_labels_train)
 		os.makedirs(dst_dir_labels_val)
+		os.makedirs(dst_dir_labels_test)
 	except OSError as e:
 		print(colorama.Fore.RED + "Error: cannot create directory:", e.strerror)
 		raise
 
 	# print("jsons:", jsons)
-	train_sequence, val_sequence = get_random_sequence(len(jsons), val_size)
+	train_sequence, val_sequence, test_sequence = get_random_sequence(len(jsons), val_size)
 
 	for index in train_sequence:
 		for format in img_formats:
@@ -179,13 +187,26 @@ def split_train_val(dir, jsons, name, val_size):
 		if os.path.isfile(file):
 			shutil.copy(file, dst_dir_labels_val)
 
+	for index in test_sequence:
+		for format in img_formats:
+			file = dir + "/" + jsons[index][:-len(".json")] + format
+			if os.path.isfile(file):
+				shutil.copy(file, dst_dir_images_test)
+				break
+
+		file = dir + "/label/" + jsons[index][:-len(".json")] + ".txt"
+		if os.path.isfile(file):
+			shutil.copy(file, dst_dir_labels_test)
+
 	num_images_train = get_files_number(dst_dir_images_train)
 	num_images_val = get_files_number(dst_dir_images_val)
+	num_images_test = get_files_number(dst_dir_images_test)
 	num_labels_train = get_files_number(dst_dir_labels_train)
 	num_labels_val = get_files_number(dst_dir_labels_val)
+	num_labels_test = get_files_number(dst_dir_labels_test)
 
-	if  num_images_train + num_images_val != len(jsons) or num_labels_train + num_labels_val != len(jsons):
-		print(colorama.Fore.RED + "Error: the number of files is inconsistent:", num_images_train, num_images_val, num_labels_train, num_labels_val, len(jsons))
+	if num_images_train + num_images_val + num_images_test != len(jsons) or num_labels_train + num_labels_val + num_labels_test != len(jsons):
+		print(colorama.Fore.RED + "Error: the number of files is inconsistent:", num_images_train, num_images_val, num_images_test, num_labels_train, num_labels_val, num_labels_test, len(jsons))
 		raise
 
 
@@ -206,6 +227,7 @@ def generate_yaml_file(labels, name):
 
 
 if __name__ == "__main__":
+	# python test_eiseg2yolov8_segment.py --dir ../../data/database/melon_new_segment --labels ../../data/images/labels.txt --val_size 0.15 --name melon_new_segment
 	colorama.init()
 	args = parse_args()
 

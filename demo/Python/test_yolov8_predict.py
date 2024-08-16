@@ -37,7 +37,7 @@ def get_images(dir):
 	return images
 
 def predict(model, dir_images, dir_result):
-	model = YOLO(model) # load an model
+	model = YOLO(model) # load an model, support format: *.pt, *.onnx, *.torchscript, *.engine, openvino_model
 	# model.info() # display model information # only *.pt format support
 
 	images = get_images(dir_images)
@@ -51,7 +51,7 @@ def predict(model, dir_images, dir_result):
 		else:
 			results = model.predict(dir_images+"/"+image, verbose=True)
 		for result in results:
-			# print(result)
+			# print("result:", result)
 			result.save(dir_result+"/"+image)
 			
 if __name__ == "__main__":
