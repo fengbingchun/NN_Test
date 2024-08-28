@@ -25,6 +25,7 @@ demo/Python/*.engine
 demo/Python/*.torchscript
 demo/Python/*.jpg
 demo/Python/*.png
+demo/Python/*.webp
 demo/Python/datasets
 demo/Python/runs
 demo/Python/*.yaml
@@ -33,3 +34,5 @@ demo/Python/tmp
 demo/Python/test.py
 demo/Python/*.bin
 demo/Python/*.data
+demo/Python/*.txt
+demo/Python/*.pth
