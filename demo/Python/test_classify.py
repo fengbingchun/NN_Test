@@ -22,8 +22,9 @@ def parse_args():
 	parser.add_argument("--task", required=True, type=str, choices=["split", "train", "predict"], help="specify what kind of task")
 	parser.add_argument("--src_dataset_path", type=str, help="source dataset path")
 	parser.add_argument("--dst_dataset_path", type=str, help="the path of the destination dataset after split")
-	parser.add_argument("--resize", default=(256,256), help="the size to which images are resized when split the dataset")
+	parser.add_argument("--resize", default=(256,256), help="the size to which images are resized when split the dataset, if(0,0),no scaling is done")
 	parser.add_argument("--ratios", default=(0.8,0.1,0.1), help="the ratio of split the data set(train set, validation set, test set), the test set can be 0, but their sum must be 1")
+	parser.add_argument("--net", type=str, choices=["alexnet", "resnet18", "resnet34", "resnet50", "resnet101", "resnet152", "convnext_small", "convnext_base", "densenet121", "densenet161"], help="specifies which network to use for training and prediction")
 	parser.add_argument("--epochs", type=int, help="number of training")
 	parser.add_argument("--mean", type=str, help="the mean of the training set of images")
 	parser.add_argument("--std", type=str, help="the standard deviation of the training set of images")
@@ -38,19 +39,13 @@ def parse_args():
 def split_dataset(src_dataset_path, dst_dataset_path, resize, ratios):
 	split = SplitClassifyDataset(path_src=src_dataset_path, path_dst=dst_dataset_path, ratios=ast.literal_eval(ratios))
 
-	# print("resize:", type(ast.literal_eval(resize))) # str to tuple
-	split.resize(shape=ast.literal_eval(resize))
+	if resize != "(0,0)":
+		# print("resize:", type(ast.literal_eval(resize))) # str to tuple
+		split.resize(shape=ast.literal_eval(resize))
 
 	split()
 	mean, std = split.get_mean_std()
 	print(f"mean: {mean}; std: {std}")
-
-
-def load_pretraind_model():
-	model = models.alexnet(weights=models.AlexNet_Weights.IMAGENET1K_V1) # the first execution will download model: alexnet-owt-7be5be79.pth, pos: C:\Users\xxxxxx/.cache\torch\hub\checkpoints\alexnet-owt-7be5be79.pth
-	# print("model:", model)
-
-	return model
 
 def draw_graph(train_losses, train_accuracies, val_losses, val_accuracies):
 	plt.subplot(1, 2, 1) # loss
@@ -83,10 +78,11 @@ def load_dataset(dataset_path, mean, std, labels_file):
 	# print(f"type: {type(mean)}, {type(std)}")
 
 	train_transform = transforms.Compose([
-		transforms.RandomHorizontalFlip(p=0.5),
+		# transforms.RandomHorizontalFlip(p=0.5),
+		# transforms.RandCrop(224, fill=(114,114,114))
 		transforms.CenterCrop(224),
 		transforms.ToTensor(),
-		transforms.Normalize(mean=mean, std=std),
+		transforms.Normalize(mean=mean, std=std), # RGB
 	])
 
 	train_dataset = ImageFolder(root=dataset_path+"/train", transform=train_transform)
@@ -97,7 +93,7 @@ def load_dataset(dataset_path, mean, std, labels_file):
 	val_transform = transforms.Compose([
 		transforms.CenterCrop(224),
 		transforms.ToTensor(),
-		transforms.Normalize(mean=mean, std=std),
+		transforms.Normalize(mean=mean, std=std), # RGB
 	])
 
 	val_dataset = ImageFolder(root=dataset_path+"/val", transform=val_transform)
@@ -110,19 +106,93 @@ def load_dataset(dataset_path, mean, std, labels_file):
 
 	return len(train_dataset.class_to_idx), len(train_dataset), len(val_dataset), train_loader, val_loader
 
-def train(dataset_path, epochs, mean, std, model_name, labels_file):
+def load_pretrained_model(net, classes_num):
+	# the first execution will download model, pos: C:\Users\xxxxxx/.cache\torch\hub\checkpoints\
+	if net == "alexnet":
+		model = models.alexnet(weights=models.AlexNet_Weights.DEFAULT) # alexnet-owt-7be5be79.pth
+		model.classifier[6] = nn.Linear(model.classifier[6].in_features, classes_num) # modify the number of categories
+	elif net == "resnet18":
+		model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT) # resnet18-f37072fd.pth
+		model.fc = nn.Linear(model.fc.in_features, classes_num)
+	elif net == "resnet34":
+		model = models.resnet34(weights=models.ResNet34_Weights.DEFAULT) # resnet34-b627a593.pth
+		model.fc = nn.Linear(model.fc.in_features, classes_num)
+	elif net == "resnet50":
+		model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT) # resnet50-11ad3fa6.pth
+		model.fc = nn.Linear(model.fc.in_features, classes_num)
+	elif net == "resnet101":
+		model = models.resnet101(weights=models.ResNet101_Weights.DEFAULT) # resnet101-cd907fc2.pth
+		model.fc = nn.Linear(model.fc.in_features, classes_num)
+	elif net == "resnet152":
+		model = models.resnet152(weights=models.ResNet152_Weights.DEFAULT) # resnet152-f82ba261.pth
+		model.fc = nn.Linear(model.fc.in_features, classes_num)
+	elif net == "convnext_small":
+		model = models.convnext_small(weights=models.ConvNeXt_Small_Weights.DEFAULT) # convnext_small-0c510722.pth
+		model.classifier[2] = nn.Linear(model.classifier[2].in_features, classes_num)
+	elif net == "convnext_base":
+		model = models.convnext_base(weights=models.ConvNeXt_Base_Weights.DEFAULT) # convnext_base-6075fbad.pth
+		model.classifier[2] = nn.Linear(model.classifier[2].in_features, classes_num)
+	elif net == "densenet121":
+		model = models.densenet121(weights=models.DenseNet121_Weights.DEFAULT) # densenet121-a639ec97.pth
+		model.classifier = nn.Linear(model.classifier.in_features, classes_num)
+	elif net == "densenet161":
+		model = models.densenet161(weights=models.DenseNet161_Weights.DEFAULT) # densenet161-8d451a50.pth
+		model.classifier = nn.Linear(model.classifier.in_features, classes_num)
+	else:
+		raise ValueError(colorama.Fore.RED + f"unsupported net: {net}")
+
+	# print("model:", model);raise
+	return model
+
+def load_trained_model(model_name, net, classes_num):
+	if net == "alexnet":
+		model = models.alexnet(weights=None)
+		in_features = model.classifier[6].in_features
+		model.classifier[6] = nn.Linear(in_features, classes_num) # modify the number of categories
+	elif net == "resnet18":
+		model = models.resnet18(weights=None)
+		model.fc = nn.Linear(model.fc.in_features, classes_num) # modify the number of categories
+	elif net == "resnet34":
+		model = models.resnet34(weights=None)
+		model.fc = nn.Linear(model.fc.in_features, classes_num)
+	elif net == "resnet50":
+		model = models.resnet50(weights=None)
+		model.fc = nn.Linear(model.fc.in_features, classes_num)
+	elif net == "resnet101":
+		model = models.resnet101(weights=None)
+		model.fc = nn.Linear(model.fc.in_features, classes_num)
+	elif net == "resnet152":
+		model = models.resnet152(weights=None)
+		model.fc = nn.Linear(model.fc.in_features, classes_num)
+	elif net == "convnext_small":
+		model = models.convnext_small(weights=None)
+		model.classifier[2] = nn.Linear(model.classifier[2].in_features, classes_num)
+	elif net == "convnext_base":
+		model = models.convnext_base(weights=None)
+		model.classifier[2] = nn.Linear(model.classifier[2].in_features, classes_num)
+	elif net == "densenet121":
+		model = models.densenet121(weights=None)
+		model.classifier = nn.Linear(model.classifier.in_features, classes_num)
+	elif net == "densenet161":
+		model = models.densenet161(weights=None)
+		model.classifier = nn.Linear(model.classifier.in_features, classes_num)
+	else:
+		raise ValueError(colorama.Fore.RED + f"unsupported net: {net}")
+
+	model.load_state_dict(torch.load(model_name))
+
+	# print("model:", model)
+	return model
+
+def train(dataset_path, epochs, mean, std, model_name, labels_file, net):
 	classes_num, train_dataset_num, val_dataset_num, train_loader, val_loader = load_dataset(dataset_path, mean, std, labels_file)
 
-	model = load_pretraind_model()
-
-	in_features = model.classifier[6].in_features
-	# print(f"in_features: {in_features}")
-	model.classifier[6] = nn.Linear(in_features, classes_num) # modify the number of categories
+	model = load_pretrained_model(net, classes_num)
 
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	model.to(device)
 
-	optimizer = optim.Adam(model.parameters(), lr=0.0002) # set the optimizer
+	optimizer = optim.Adam(model.parameters(), lr=0.00001) # set the optimizer
 	criterion = nn.CrossEntropyLoss() # set the loss
 
 	train_losses = []
@@ -186,7 +256,7 @@ def train(dataset_path, epochs, mean, std, model_name, labels_file):
 		val_losses.append(avg_val_loss)
 		val_accuracies.append(avg_val_acc)
 		epoch_end = time.time()
-		print(f"epoch:{epoch+1}/{epochs}; train loss:{avg_train_loss:.4f}, accuracy:{avg_train_acc:.4f}; validation loss:{avg_val_loss:.4f}, accuracy:{avg_val_acc:.4f}; time:{epoch_end-epoch_start:.2f}s")
+		print(f"epoch:{epoch+1}/{epochs}; train loss:{avg_train_loss:.6f}, accuracy:{avg_train_acc:.6f}; validation loss:{avg_val_loss:.6f}, accuracy:{avg_val_acc:.6f}; time:{epoch_end-epoch_start:.2f}s")
 
 		if highest_accuracy < avg_val_acc and minimum_loss > avg_val_loss:
 			torch.save(model.state_dict(), model_name)
@@ -245,7 +315,7 @@ def save_features(model, input_batch, image_name):
 	# print(f"file name: {file_name}")
 	features.tofile(dir_name+"/"+file_name+".bin")
 
-def predict(model_name, labels_file, images_path, mean, std):
+def predict(model_name, labels_file, images_path, mean, std, net):
 	classes = parse_labels_file(labels_file)
 	assert len(classes) != 0, "the number of categories can't be 0"
 
@@ -255,11 +325,7 @@ def predict(model_name, labels_file, images_path, mean, std):
 	mean = ast.literal_eval(mean) # str to tuple
 	std = ast.literal_eval(std)
 
-	model = models.alexnet(weights=None)
-	in_features = model.classifier[6].in_features
-	model.classifier[6] = nn.Linear(in_features, len(classes)) # modify the number of categories
-	# print("alexnet model:", model)
-	model.load_state_dict(torch.load(model_name))
+	model = load_trained_model(model_name, net, len(classes))
 
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	model.to(device)
@@ -272,7 +338,7 @@ def predict(model_name, labels_file, images_path, mean, std):
 			preprocess = transforms.Compose([
 				transforms.CenterCrop(224),
 				transforms.ToTensor(),
-				transforms.Normalize(mean=mean, std=std)
+				transforms.Normalize(mean=mean, std=std) # RGB
 			])
 
 			input_tensor = preprocess(input_image) # (c,h,w)
@@ -285,7 +351,8 @@ def predict(model_name, labels_file, images_path, mean, std):
 			max_value, max_index = torch.max(probabilities, dim=0)
 			print(f"{image_name}\t\t\t\t\t\t{classes[max_index.item()]}\t{max_value.item():.4f}")
 
-			save_features(model, input_batch, image_name)
+			# if net == "alexnet":
+			# 	save_features(model, input_batch, image_name)
 
 
 if __name__ == "__main__":
@@ -293,13 +360,13 @@ if __name__ == "__main__":
 	args = parse_args()
 
 	if args.task == "split":
-		# python test_alexnet.py --task split --src_dataset_path ../../data/database/classify/melon --dst_dataset_path datasets/melon_new_classify --resize (256,256) --ratios (0.7,0.2,0.1)
+		# python test_classify.py --task split --src_dataset_path ../../data/database/classify/melon --dst_dataset_path datasets/melon_new_classify --resize (256,256) --ratios (0.7,0.2,0.1)
 		split_dataset(args.src_dataset_path, args.dst_dataset_path, args.resize, args.ratios)
 	elif args.task == "train":
-		# python test_alexnet.py --task train --dst_dataset_path datasets/melon_new_classify --epochs 100 --mean (0.52817206,0.60931162,0.59818634) --std (0.2533697287956878,0.22790271847362834,0.2380239874816262) --model_name best.pth --labels_file classes.txt
-		train(args.dst_dataset_path, args.epochs, args.mean, args.std, args.model_name, args.labels_file)
+		# python test_classify.py --task train --dst_dataset_path datasets/melon_new_classify --epochs 100 --mean (0.52817206,0.60931162,0.59818634) --std (0.2533697287956878,0.22790271847362834,0.2380239874816262) --model_name best.pth --labels_file classes.txt --net alexnet
+		train(args.dst_dataset_path, args.epochs, args.mean, args.std, args.model_name, args.labels_file, args.net)
 	else: # predict
-		# python test_alexnet.py --task predict --predict_images_path datasets/melon_new_classify/test --mean (0.52817206,0.60931162,0.59818634) --std (0.2533697287956878,0.22790271847362834,0.2380239874816262) --model_name best.pth --labels_file classes.txt
-		predict(args.model_name, args.labels_file, args.predict_images_path, args.mean, args.std)
+		# python test_classify.py --task predict --predict_images_path datasets/melon_new_classify/test --mean (0.52817206,0.60931162,0.59818634) --std (0.2533697287956878,0.22790271847362834,0.2380239874816262) --model_name best.pth --labels_file classes.txt --net alexnet
+		predict(args.model_name, args.labels_file, args.predict_images_path, args.mean, args.std, args.net)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

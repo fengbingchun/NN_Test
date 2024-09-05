@@ -82,7 +82,7 @@ def preprocess(dir_images, dir_result, imgsz):
 
 if __name__ == "__main__":
 	# python test_yolov8_preprocess.py --dir_images datasets/melon_new_segment/images/test --dir_result result_preprocess
-	colorama.init()
+	colorama.init(autoreset=True)
 	args = parse_args()
 
 	check_imgsz(args.imgsz, args.stride)

@@ -32,7 +32,9 @@ demo/Python/*.yaml
 demo/Python/result*
 demo/Python/tmp
 demo/Python/test.py
+demo/Python/*.bin.*
 demo/Python/*.bin
 demo/Python/*.data
 demo/Python/*.txt
 demo/Python/*.pth
+demo/Python/utils/__pycache__/

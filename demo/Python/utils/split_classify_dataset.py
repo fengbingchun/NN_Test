@@ -174,6 +174,7 @@ class SplitClassifyDataset:
 					img = cv2.imread(dst_dir_name+file)
 					if img is None:
 						raise FileNotFoundError(f"image not found: {dst_dir_name}{file}")
+					img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # bgr -> rgb
 					imgs.append(img)
 
 					img_array = np.array(img)
@@ -184,7 +185,7 @@ class SplitClassifyDataset:
 		arr = np.array(imgs)
 		# print("arr.shape:", arr.shape)
 		self.mean = np.mean(arr, axis=(0, 1, 2)) / 255
-		self.std = [np.mean(std_reds) / 255, np.mean(std_greens) / 255, np.mean(std_blues) / 255] # B,G,R
+		self.std = [np.mean(std_reds) / 255, np.mean(std_greens) / 255, np.mean(std_blues) / 255] # R,G,B
 
 	def __call__(self):
 		self._create_dir()

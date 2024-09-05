@@ -127,10 +127,12 @@
 		- Code
 			- [LabelMe JSON to YOLOv8 TXT: Detect](demo/Python/test_labelme2yolov8_detect.py)
 			- [EISeg JSON to YOLOV8 TXT: Segment](demo/Python/test_eiseg2yolov8_segment.py)
-			- [YOLOv8 train](demo/Python/test_yolov8_train.py)
-			- [YOLOv8 predict](demo/Python/test_yolov8_predict.py)
+			- [YOLOv8 train: detect/segment/classify](demo/Python/test_yolov8_train.py)
+			- [YOLOv8 predict: detect/segment/classify](demo/Python/test_yolov8_predict.py)
 			- [YOLOv8 segment onnxruntime predict](demo/Python/test_yolov8_segment_onnxruntime_predict.py)
-			- [AlexNet classify](demo/Python/test_alexnet.py)
+			- [image classify: include AlexNet, ResNet, DenseNet](demo/Python/test_classify.py)
+			- [YOLOv8 preprocess: detect/segment](demo/Python/test_yolov8_preprocess.py)
+			- [YOLOv8 postprocess: detect/segment](demo/Python/test_yolov8_postprocess.py)
 - Database convert to Images or Images conver to Database
 	- MNIST
 	- CIFAR10/CIFAR100
@@ -149,5 +151,5 @@
 ![](prj/x86_x64_vc12/Screenshot.png)
 
 
-**Blog:** [fengbingchun](http://blog.csdn.net/fengbingchun/article/category/780354)
+**Blog:** [fengbingchun](https://blog.csdn.net/fengbingchun/category_3185667.html)
 
