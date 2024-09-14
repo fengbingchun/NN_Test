@@ -18,7 +18,7 @@ from pathlib import Path
 # Blog: https://blog.csdn.net/fengbingchun/article/details/141635132
 
 def parse_args():
-	parser = argparse.ArgumentParser(description="AlexNet image classification")
+	parser = argparse.ArgumentParser(description="image classification")
 	parser.add_argument("--task", required=True, type=str, choices=["split", "train", "predict"], help="specify what kind of task")
 	parser.add_argument("--src_dataset_path", type=str, help="source dataset path")
 	parser.add_argument("--dst_dataset_path", type=str, help="the path of the destination dataset after split")
@@ -184,10 +184,23 @@ def load_trained_model(model_name, net, classes_num):
 	# print("model:", model)
 	return model
 
+def get_model_parameters(model):
+	print("model:", model)
+
+	total_params = sum(p.numel() for p in model.parameters())
+	print(f"total parameters: {total_params}")
+	total_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+	print(f"training parameters: {total_trainable_params}")
+
+	tensor = torch.rand(1, 3, 224, 224)
+	output = model(tensor)
+	raise ValueError(colorama.Fore.YELLOW + "for testing purposes")
+
 def train(dataset_path, epochs, mean, std, model_name, labels_file, net):
 	classes_num, train_dataset_num, val_dataset_num, train_loader, val_loader = load_dataset(dataset_path, mean, std, labels_file)
 
 	model = load_pretrained_model(net, classes_num)
+	# get_model_parameters(model)
 
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	model.to(device)

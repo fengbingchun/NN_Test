@@ -1,6 +1,6 @@
 # NN_Test #
-**This project contains some neural network code(Note: depend on opencv/libtorch/onnxruntime):**
-- neural network code(C++)
+**This project contains some deep learning code(Note: depend on opencv/libtorch/onnxruntime):**
+- deep learning code(C++)
 	- Perceptron
 	- BP(Back Propagation)
 	- CNN(Convolutional Neural Networks)
@@ -59,6 +59,10 @@
 	- common algorithm
 		- Brute Force(string match)
 		- Triangle similarity(monocular ranging)
+- Database convert to Images or Images conver to Database
+	- MNIST
+	- CIFAR10/CIFAR100
+	- ORL Faces Database
 - open source library's usage(C++)
 	- tiny-cnn [GitHub](https://github.com/nyanp/tiny-cnn)
 	- tiny-dnn [GitHub](https://github.com/tiny-dnn/tiny-dnn)
@@ -133,10 +137,7 @@
 			- [image classify: include AlexNet, ResNet, DenseNet](demo/Python/test_classify.py)
 			- [YOLOv8 preprocess: detect/segment](demo/Python/test_yolov8_preprocess.py)
 			- [YOLOv8 postprocess: detect/segment](demo/Python/test_yolov8_postprocess.py)
-- Database convert to Images or Images conver to Database
-	- MNIST
-	- CIFAR10/CIFAR100
-	- ORL Faces Database
+			- [PyTorch learning rate warmup](demo/Python/test_learning_rate_warmup.py)
 
 **The project support platform:**
 - windows10 64 bits: It can be directly build with VS2022 in windows10 64bits.
