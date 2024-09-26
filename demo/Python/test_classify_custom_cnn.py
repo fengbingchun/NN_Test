@@ -10,7 +10,7 @@ import torch.optim as optim
 from torchvision.datasets import ImageFolder
 from torchvision import transforms
 import matplotlib.pyplot as plt
-from utils import split_dataset
+from utils import split_classify_dataset
 from typing import Type
 from pathlib import Path
 from PIL import Image
@@ -710,7 +710,7 @@ if __name__ == "__main__":
 
 	if args.task == "split":
 		# python test_classify_custom_cnn.py --task split --src_dataset_path ../../data/database/classify/melon --dst_dataset_path datasets/melon_new_classify --resize (32,192) --ratios (0.9,0.05,0.05)
-		split_dataset(args.src_dataset_path, args.dst_dataset_path, args.resize, args.ratios)
+		split_classify_dataset(args.src_dataset_path, args.dst_dataset_path, args.resize, args.ratios)
 	elif args.task == "train":
 		# python test_classify_custom_cnn.py --task train --src_dataset_path datasets/melon_new_classify --epochs 100 --mean (0.53087615,0.23997033,0.45703197) --std (0.29807151489753686,0.3128615049442739,0.15151863355831655) --labels_file classes.txt --model_name best.pth --net alexnet
 		# 64x512: --mean (0.51225255,0.29016045,0.45465541) --std (0.2718249152287802,0.28992280900329326,0.1353453804698747)
