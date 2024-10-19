@@ -37,12 +37,14 @@ def parse_args():
 	parser.add_argument("--batch_size", type=int, default=32, help="batch size during training")
 	parser.add_argument("--drop_rate", type=float, default=0, help="dropout rate after each dense layer")
 	parser.add_argument("--drop_rate2", type=float, default=0, help="dropout rate after fc")
+	parser.add_argument("--last_fc_features_length", type=int, default=512, help="the features length of the last layer fc")
 	parser.add_argument("--threshold", type=float, default=0.5, help="error margin")
 	parser.add_argument("--mean", type=str, help="the mean of the training set of images")
 	parser.add_argument("--std", type=str, help="the standard deviation of the training set of images")
 	parser.add_argument("--model_name", type=str, help="the model generated during training or the model loaded during prediction")
 	parser.add_argument("--pretrained_model", type=str, default="", help="pretrained model loaded during training")
 	parser.add_argument("--predict_images_path", type=str, help="predict images path")
+	parser.add_argument("--gpu", type=str, default="0", help="set which graphics card to use")
 
 	args = parser.parse_args()
 	return args
@@ -294,7 +296,8 @@ class DenseNet(nn.Module):
 		drop_rate: float = 0,
 		num_classes: int = 1,
 		init_weights: bool = False,
-		drop_rate2: float = 0
+		drop_rate2: float = 0,
+		last_fc_features_length: int = 512
 	) -> None:
 		super().__init__()
 
@@ -340,9 +343,8 @@ class DenseNet(nn.Module):
 		self.features.add_module("norm5", nn.BatchNorm2d(num_features))
 
 		# Linear layer
-		self.fc = nn.Linear(num_features, num_features // 2)
-		self.classifier = nn.Linear(num_features // 2, num_classes)
-
+		self.fc1 = nn.Linear(num_features, last_fc_features_length)
+		self.fc2 = nn.Linear(last_fc_features_length, num_classes)
 		self.dropout = nn.Dropout(p=drop_rate2)
 
 		# Official init from torch repo.
@@ -384,12 +386,12 @@ class DenseNet(nn.Module):
 		# print("out shape F.adaptive_avg_pool2d:", out.shape)
 		out = torch.flatten(out, 1)
 		# print("out shape torch.flatten:", out.shape)
-		out = self.fc(out)
-		# print("out shape self.fc:", out.shape)
+		out = self.fc1(out)
+		# print("out shape self.fc1:", out.shape)
 		out = self.dropout(out)
 		# print("out shape self.dropout:", out.shape)
-		out = self.classifier(out)
-		# print("out shape self.classifier:", out.shape)
+		out = self.fc2(out)
+		# print("out shape self.fc2:", out.shape)
 		return out
 
 
@@ -477,14 +479,14 @@ def calculate_hit_rate(labels_src, labels_dst, length, threshold):
 			count = count + 1
 	return float(count) / length
 
-def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, batch_size, threshold, lr, drop_rate, drop_rate2, loss_delta):
+def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, batch_size, threshold, lr, drop_rate, drop_rate2, loss_delta, last_fc_features_length):
 	train_dataset_num, val_dataset_num, train_loader, val_loader = load_dataset(dataset_path, mean, std, batch_size)
 
 	if net == "resnet18":
 		model = ResNet18(block=BasicBlock, init_weights=True)
 	elif net == "densenet":
 		# model = models.DenseNet(growth_rate=32, block_config=(6,12,24,16), num_init_features=64, num_classes=1)
-		model = DenseNet(growth_rate=32, block_config=(6,12,24,16), num_init_features=64, num_classes=1, init_weights=True, drop_rate=drop_rate, drop_rate2=drop_rate2)
+		model = DenseNet(growth_rate=32, block_config=(6,12,24,16), num_init_features=64, num_classes=1, init_weights=True, drop_rate=drop_rate, drop_rate2=drop_rate2, last_fc_features_length=last_fc_features_length)
 	if pretrained_model != "":
 		model.load_state_dict(torch.load(pretrained_model, map_location="cpu"))
 	# get_model_parameters(model)
@@ -500,10 +502,10 @@ def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, ba
 	val_losses = []
 	val_accuracies = []
 
-	highest_accuracy = 0.
-	minimum_loss = 100.
-	highest_accuracy2 = 0.
-	minimum_loss2 = 100.
+	highest_accuracy_train = 0.
+	minimum_loss_train = 100.
+	highest_accuracy_val = 0.
+	minimum_loss_val = 100.
 
 	for epoch in range(epochs):
 		epoch_start = time.time()
@@ -564,22 +566,28 @@ def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, ba
 		epoch_end = time.time()
 		print(f"epoch:{epoch+1}/{epochs}; train loss:{avg_train_loss:.6f}, accuracy:{avg_train_acc:.6f}; validation loss:{avg_val_loss:.6f}, accuracy:{avg_val_acc:.6f}; time:{epoch_end-epoch_start:.2f}s")
 
-		if highest_accuracy < avg_val_acc and minimum_loss > avg_val_loss:
+		if highest_accuracy_val < avg_val_acc: #and minimum_loss_val > avg_val_loss:
 			torch.save(model.state_dict(), model_name)
-		# 	highest_accuracy = avg_val_acc
-		# 	minimum_loss = avg_val_loss
 
-		if highest_accuracy2 < avg_val_acc:
-			highest_accuracy2 = avg_val_acc
-		if minimum_loss2 > avg_val_loss:
-			minimum_loss2 = avg_val_loss
+		if highest_accuracy_val < avg_val_acc:
+			highest_accuracy_val = avg_val_acc
+		if minimum_loss_val > avg_val_loss:
+			minimum_loss_val = avg_val_loss
+		if highest_accuracy_train < avg_train_acc:
+			highest_accuracy_train = avg_train_acc
+		if minimum_loss_train > avg_train_loss:
+			minimum_loss_train = avg_train_loss
+
+		if highest_accuracy_train > 0.99 and highest_accuracy_val < 0.5:
+			print(colorama.Fore.YELLOW + "overfitting")
+			break
 
 		# if avg_val_loss < 0.00001 and avg_val_acc > 0.99999:
 		# 	print(colorama.Fore.YELLOW + "stop training early")
 		# 	torch.save(model.state_dict(), model_name)
 		# 	break
 
-	print(f"mininum loss: {minimum_loss2}; highest accuracy: {highest_accuracy2}")
+	print(f"train: loss:{minimum_loss_train:.6f}, acc:{highest_accuracy_train:.6f};  val: loss:{minimum_loss_val:.6f}, acc:{highest_accuracy_val:.6f}")
 	# draw_graph(train_losses, train_accuracies, val_losses, val_accuracies)
 
 
@@ -603,7 +611,7 @@ def get_ground_truth(csv_file):
 		ground_truth[img_name] = label
 	return ground_truth
 
-def predict(model_name, images_path, mean, std, net, threshold, csv_file):
+def predict(model_name, images_path, mean, std, net, threshold, csv_file, last_fc_features_length):
 	image_names = get_images_list(images_path)
 	assert len(image_names) != 0, "no images found"
 
@@ -613,7 +621,7 @@ def predict(model_name, images_path, mean, std, net, threshold, csv_file):
 	if net == "resnet18":
 		model = ResNet18(block=BasicBlock)
 	elif net == "densenet":
-		model = DenseNet(growth_rate=32, block_config=(6,12,24,16), num_init_features=64, num_classes=1)
+		model = DenseNet(growth_rate=32, block_config=(6,12,24,16), num_init_features=64, num_classes=1, last_fc_features_length=last_fc_features_length)
 	model.load_state_dict(torch.load(model_name))
 
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -651,18 +659,26 @@ def predict(model_name, images_path, mean, std, net, threshold, csv_file):
 	print(f"total number of predict images: {len(image_names)}, hit rate: {hit_rate:.6f}")
 
 
+def set_gpu(id):
+	os.environ["CUDA_VISIBLE_DEVICES"] = id # set which graphics card to use: 0,1,2..., default is 0
+
+	print("available gpus:", torch.cuda.device_count())
+	print("current gpu device:", torch.cuda.current_device())
+
+
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
+	set_gpu(args.gpu)
 
 	if args.task == "split":
 		# python test_regression_custom_cnn.py --task split --src_dataset_path ../../data/database/regression/FeO --dst_dataset_path datasets/regression --csv_file ../../data/database/regression/FeO.csv --resize (64,512) --ratios (0.9,0.05,0.05)
 		split_regression_dataset(args.src_dataset_path, args.dst_dataset_path, args.csv_file, args.resize, args.fill_value, args.ratios)
 	elif args.task == "train":
 		# python test_regression_custom_cnn.py --task train --src_dataset_path datasets/regression --epochs 100 --mean (0.51105501,0.2900612,0.45467574) --std (0.27224947583159903,0.28995317923225,0.13527405631842085) --model_name best.pth --net resnet18 --batch_size 2 --lr 0.0005
-		train(args.src_dataset_path, args.epochs, args.mean, args.std, args.model_name, args.net, args.pretrained_model, args.batch_size, args.threshold, args.lr, args.drop_rate, args.drop_rate2, args.loss_delta)
+		train(args.src_dataset_path, args.epochs, args.mean, args.std, args.model_name, args.net, args.pretrained_model, args.batch_size, args.threshold, args.lr, args.drop_rate, args.drop_rate2, args.loss_delta, args.last_fc_features_length)
 	else: # predict
 		# python test_regression_custom_cnn.py --task predict --predict_images_path datasets/regression/test --mean (0.51105501,0.2900612,0.45467574) --std (0.27224947583159903,0.28995317923225,0.13527405631842085) --model_name best.pth --net resnet18 --csv_file datasets/regression/test.csv
-		predict(args.model_name, args.predict_images_path, args.mean, args.std, args.net, args.threshold, args.csv_file)
+		predict(args.model_name, args.predict_images_path, args.mean, args.std, args.net, args.threshold, args.csv_file, args.last_fc_features_length)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

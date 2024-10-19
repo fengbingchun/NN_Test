@@ -15,16 +15,20 @@ from typing import Type
 from pathlib import Path
 from PIL import Image
 import torchvision.models as models
+from datetime import datetime
 
 def parse_args():
-	parser = argparse.ArgumentParser(description="Modified AlexNet/ResNet18/DenseNet image classification")
+	parser = argparse.ArgumentParser(description="Modified AlexNet/ResNet18 image classification")
 	parser.add_argument("--task", required=True, type=str, choices=["split", "train", "predict"], help="specify what kind of task")
 	parser.add_argument("--src_dataset_path", type=str, help="source dataset path")
 	parser.add_argument("--dst_dataset_path", type=str, help="the path of the destination dataset after split")
 	parser.add_argument("--resize", default=(256,256), help="the size to which images are resized when split the dataset, if(0,0),no scaling is done")
+	parser.add_argument("--fill_value", default=(114,114,114), help="image fill value")
 	parser.add_argument("--ratios", default=(0.8,0.1,0.1), help="the ratio of split the data set(train set, validation set, test set), the test set can be 0, but their sum must be 1")
 	parser.add_argument("--net", type=str, choices=["alexnet", "resnet18"], help="specifies which network to use for training and prediction")
 	parser.add_argument("--epochs", type=int, help="number of training")
+	parser.add_argument("--lr", type=float, default=0.0005, help="learning rate")
+	parser.add_argument("--batch_size", type=int, default=32, help="batch size during training")
 	parser.add_argument("--mean", type=str, help="the mean of the training set of images")
 	parser.add_argument("--std", type=str, help="the standard deviation of the training set of images")
 	parser.add_argument("--model_name", type=str, help="the model generated during training or the model loaded during prediction")
@@ -197,135 +201,6 @@ class AlexNet(nn.Module):
 		return x
 
 
-# class BasicBlock(nn.Module):
-# 	"""residual building block"""
-# 	def __init__(
-# 		self,
-# 		in_channels: int,
-# 		out_channels: int,
-# 		stride: int = 1,
-# 		downsample: nn.Module = None
-# 	) -> None:
-# 		super(BasicBlock, self).__init__()
-# 		self.downsample = downsample
-# 		self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
-# 		self.bn1 = nn.BatchNorm2d(out_channels)
-# 		self.relu = nn.ReLU(inplace=True)
-# 		self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
-# 		self.bn2 = nn.BatchNorm2d(out_channels)
-
-# 	def forward(self, x: Tensor) -> Tensor:
-# 		identity = x
-
-# 		out = self.conv1(x)
-# 		out = self.bn1(out)
-# 		out = self.relu(out)
-
-# 		out = self.conv2(out)
-# 		out = self.bn2(out)
-
-# 		if self.downsample is not None:
-# 			identity = self.downsample(x)
-
-# 		out += identity
-# 		out = self.relu(out)
-
-# 		return out
-
-# class ResNet18(nn.Module):
-# 	def __init__(
-# 		self,
-# 		block: Type[BasicBlock],
-# 		num_classes: int = 1000,
-# 		init_weights: bool = False
-# 	) -> None:
-# 		super(ResNet18, self).__init__()
-# 		layers = [2, 2, 2, 2]
-# 		self.in_channels = 64
-# 		self.conv1 = nn.Conv2d(in_channels=3, out_channels=self.in_channels, kernel_size=7, stride=2, padding=3, bias=False)
-# 		self.bn1 = nn.BatchNorm2d(self.in_channels)
-# 		self.relu = nn.ReLU(inplace=True)
-# 		self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-
-# 		self.layer1 = self._make_layer(block, 64, layers[0], stride=1)
-# 		self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
-# 		self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
-# 		self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-
-# 		self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-# 		self.fc = nn.Linear(512, num_classes)
-
-# 		if init_weights:
-# 			self._init_weights()
-
-# 	def _make_layer(
-# 		self,
-# 		block: Type[BasicBlock],
-# 		out_channels: int,
-# 		blocks: int,
-# 		stride: int = 1
-# 	) -> nn.Sequential:
-# 		downsample = None
-# 		if stride != 1:
-# 			downsample = nn.Sequential(
-# 				nn.Conv2d(self.in_channels, out_channels, kernel_size=1, stride=stride, bias=False),
-# 				nn.BatchNorm2d(out_channels),
-# 			)
-
-# 		layers = []
-# 		layers.append(block(self.in_channels, out_channels, stride, downsample))
-# 		self.in_channels = out_channels
-
-# 		for _ in range(1, blocks):
-# 			layers.append(block(self.in_channels, out_channels))
-
-# 		return nn.Sequential(*layers)
-
-# 	def _init_weights(self):
-# 		for m in self.modules():
-# 			if isinstance(m, nn.Conv2d):
-# 				nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
-# 				if m.bias is not None:
-# 					nn.init.constant_(m.bias, 0.000001)
-# 			elif isinstance(m, nn.BatchNorm2d):
-# 				nn.init.uniform_(m.weight, 0.000001, 1.0)
-# 				if m.bias is not None:
-# 					nn.init.constant_(m.bias, 0.000001)
-# 			elif isinstance(m, nn.Linear):
-# 				nn.init.normal_(m.weight, 0, 0.000001)
-# 				nn.init.constant_(m.bias, 0.000001)
-
-# 	def forward(self, x: Tensor) -> Tensor:
-# 		print("input x shape:", x.shape)
-# 		x = self.conv1(x)
-# 		print("self.conv1 shape:", x.shape)
-# 		x = self.bn1(x)
-# 		print("self.bn1(x) shape:", x.shape)
-# 		x = self.relu(x)
-# 		print("self.relu(x) shape:", x.shape)
-# 		x = self.maxpool(x)
-# 		print("self.maxpool(x) shape:", x.shape)
-
-# 		x = self.layer1(x)
-# 		print("self.layer1(x) shape:", x.shape)
-# 		x = self.layer2(x)
-# 		print("self.layer2(x) shape", x.shape)
-# 		x = self.layer3(x)
-# 		print("self.layer3(x) shape:", x.shape)
-# 		x = self.layer4(x)
-# 		# print("Dimensions of the last convolutional feature map:", x.shape)
-# 		print("self.layer4(x) shape:", x.shape)
-
-# 		x = self.avgpool(x)
-# 		print("self.avgpool(x) shape:", x.shape)
-# 		x = torch.flatten(x, 1)
-# 		print("torch.flatten(x,1) shape:", x.shape)
-# 		x = self.fc(x)
-# 		print("self.fc(x) shape:", x.shape)
-# 		raise
-
-# 		return x
-
 class BasicBlock(nn.Module):
 	"""residual building block"""
 	def __init__(
@@ -490,7 +365,10 @@ def draw_graph(train_losses, train_accuracies, val_losses, val_accuracies):
 	plt.plot(val_accuracies, color="red")
 	plt.legend(["Train Accuracy", "Val Accuracy"])
 
-	plt.show()
+	now = datetime.now()
+	formatted_now = now.strftime("%Y-%m-%d-%H-%M-%S")
+	plt.savefig("regression_"+formatted_now+".png")
+	# plt.show()
 
 
 def write_labels(class_to_idx, labels_file):
@@ -499,7 +377,7 @@ def write_labels(class_to_idx, labels_file):
 		for key, val in class_to_idx.items():
 			file.write("%d %s\n" % (int(val), key))
 
-def load_dataset(dataset_path, mean, std, labels_file):
+def load_dataset(dataset_path, mean, std, labels_file, batch_size):
 	mean = ast.literal_eval(mean) # str to tuple
 	std = ast.literal_eval(std)
 	# print(f"type: {type(mean)}, {type(std)}")
@@ -513,7 +391,7 @@ def load_dataset(dataset_path, mean, std, labels_file):
 	train_dataset = ImageFolder(root=dataset_path+"/train", transform=train_transform)
 	print(f"train dataset length: {len(train_dataset)}; classes: {train_dataset.class_to_idx}; number of categories: {len(train_dataset.class_to_idx)}")
 
-	train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=0)
+	train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
 	val_transform = transforms.Compose([
 		# transforms.CenterCrop(224),
@@ -525,7 +403,7 @@ def load_dataset(dataset_path, mean, std, labels_file):
 	print(f"val dataset length: {len(val_dataset)}; classes: {val_dataset.class_to_idx}")
 	assert len(train_dataset.class_to_idx) == len(val_dataset.class_to_idx), f"the number of categories int the train set must be equal to the number of categories in the validation set: {len(train_dataset.class_to_idx)} : {len(val_dataset.class_to_idx)}"
 
-	val_loader = DataLoader(val_dataset, batch_size=2, shuffle=True, num_workers=0)
+	val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
 	write_labels(train_dataset.class_to_idx, labels_file)
 
@@ -543,8 +421,8 @@ def get_model_parameters(model):
 	output = model(tensor)
 	raise ValueError(colorama.Fore.YELLOW + "for testing purposes")
 
-def train(dataset_path, epochs, mean, std, model_name, labels_file, net, pretrained_model):
-	classes_num, train_dataset_num, val_dataset_num, train_loader, val_loader = load_dataset(dataset_path, mean, std, labels_file)
+def train(dataset_path, epochs, mean, std, model_name, labels_file, net, pretrained_model, batch_size, lr):
+	classes_num, train_dataset_num, val_dataset_num, train_loader, val_loader = load_dataset(dataset_path, mean, std, labels_file, batch_size)
 
 	if net == "alexnet":
 		model = AlexNet(num_classes=classes_num, init_weights=True)
@@ -559,16 +437,18 @@ def train(dataset_path, epochs, mean, std, model_name, labels_file, net, pretrai
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	model.to(device)
 
-	optimizer = optim.Adam(model.parameters(), lr=0.0001) # set the optimizer
-	criterion = nn.CrossEntropyLoss() #nn.HuberLoss() # nn.CrossEntropyLoss() # set the loss
+	optimizer = optim.Adam(model.parameters(), lr=lr) # set the optimizer
+	criterion = nn.CrossEntropyLoss() # set the loss
 
 	train_losses = []
 	train_accuracies = []
 	val_losses = []
 	val_accuracies = []
 
-	highest_accuracy = 0.
-	minimum_loss = 100.
+	highest_accuracy_train = 0.
+	minimum_loss_train = 100.
+	highest_accuracy_val = 0.
+	minimum_loss_val = 100.
 
 	for epoch in range(epochs):
 		epoch_start = time.time()
@@ -622,10 +502,17 @@ def train(dataset_path, epochs, mean, std, model_name, labels_file, net, pretrai
 		epoch_end = time.time()
 		print(f"epoch:{epoch+1}/{epochs}; train loss:{avg_train_loss:.6f}, accuracy:{avg_train_acc:.6f}; validation loss:{avg_val_loss:.6f}, accuracy:{avg_val_acc:.6f}; time:{epoch_end-epoch_start:.2f}s")
 
-		if highest_accuracy < avg_val_acc and minimum_loss > avg_val_loss:
+		if highest_accuracy_val < avg_val_acc: #and minimum_loss_val > avg_val_loss:
 			torch.save(model.state_dict(), model_name)
-			highest_accuracy = avg_val_acc
-			minimum_loss = avg_val_loss
+
+		if highest_accuracy_val < avg_val_acc:
+			highest_accuracy_val = avg_val_acc
+		if minimum_loss_val > avg_val_loss:
+			minimum_loss_val = avg_val_loss
+		if highest_accuracy_train < avg_train_acc:
+			highest_accuracy_train = avg_train_acc
+		if minimum_loss_train > avg_train_loss:
+			minimum_loss_train = avg_train_loss
 
 		if avg_val_loss < 0.00001 and avg_val_acc > 0.99999:
 			print(colorama.Fore.YELLOW + "stop training early")
@@ -636,6 +523,7 @@ def train(dataset_path, epochs, mean, std, model_name, labels_file, net, pretrai
 			torch.save(model.state_dict(), model_name)
 			break
 
+	print(f"train: loss:{minimum_loss_train:.6f}, acc:{highest_accuracy_train:.6f};  val: loss:{minimum_loss_val:.6f}, acc:{highest_accuracy_val:.6f}")
 	# draw_graph(train_losses, train_accuracies, val_losses, val_accuracies)
 
 def parse_labels_file(labels_file):
@@ -710,11 +598,10 @@ if __name__ == "__main__":
 
 	if args.task == "split":
 		# python test_classify_custom_cnn.py --task split --src_dataset_path ../../data/database/classify/melon --dst_dataset_path datasets/melon_new_classify --resize (32,192) --ratios (0.9,0.05,0.05)
-		split_classify_dataset(args.src_dataset_path, args.dst_dataset_path, args.resize, args.ratios)
+		split_classify_dataset(args.src_dataset_path, args.dst_dataset_path, args.resize, args.fill_value, args.ratios)
 	elif args.task == "train":
 		# python test_classify_custom_cnn.py --task train --src_dataset_path datasets/melon_new_classify --epochs 100 --mean (0.53087615,0.23997033,0.45703197) --std (0.29807151489753686,0.3128615049442739,0.15151863355831655) --labels_file classes.txt --model_name best.pth --net alexnet
-		# 64x512: --mean (0.51225255,0.29016045,0.45465541) --std (0.2718249152287802,0.28992280900329326,0.1353453804698747)
-		train(args.src_dataset_path, args.epochs, args.mean, args.std, args.model_name, args.labels_file, args.net, args.pretrained_model)
+		train(args.src_dataset_path, args.epochs, args.mean, args.std, args.model_name, args.labels_file, args.net, args.pretrained_model, args.batch_size, args.lr)
 	else: # predict
 		# python test_classify_custom_cnn.py --task predict --predict_images_path datasets/melon_new_classify/test --mean (0.53087615,0.23997033,0.45703197) --std (0.29807151489753686,0.3128615049442739,0.15151863355831655) --labels_file classes.txt --model_name best.pth --net alexnet
 		predict(args.model_name, args.labels_file, args.predict_images_path, args.mean, args.std, args.net)

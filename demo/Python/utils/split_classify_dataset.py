@@ -197,12 +197,12 @@ class SplitClassifyDataset:
 		"""get the mean and variance"""
 		return self.mean, self.std
 
-def split_classify_dataset(src_dataset_path, dst_dataset_path, resize, ratios):
+def split_classify_dataset(src_dataset_path, dst_dataset_path, resize, fill_value, ratios):
 	split = SplitClassifyDataset(path_src=src_dataset_path, path_dst=dst_dataset_path, ratios=ast.literal_eval(ratios))
 
 	if resize != "(0,0)":
 		# print("resize:", type(ast.literal_eval(resize))) # str to tuple
-		split.resize(shape=ast.literal_eval(resize))
+		split.resize(shape=ast.literal_eval(resize), value=ast.literal_eval(fill_value))
 
 	split()
 	mean, std = split.get_mean_std()

@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 def parse_args():
-	parser = argparse.ArgumentParser(description="YOLOv8 detect/segment preprocess")
+	parser = argparse.ArgumentParser(description="YOLOv8 detect/segment postprocess")
 	parser.add_argument("--src_image", required=True, type=str, help="source image")
 	parser.add_argument("--dst_image", required=True, type=str, help="result image after drawing the box")
 	parser.add_argument("--net_output_file", required=True, type=str, help="output result after inference")
