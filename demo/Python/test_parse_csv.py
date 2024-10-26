@@ -5,6 +5,10 @@ from pathlib import Path
 import csv
 import shutil
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib
+import pandas as pd
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="parse csv file")
@@ -262,11 +266,147 @@ def parse_csv6(src_dataset_path, dst_dataset_path): # first: run parse_csv5, sec
 			writer.writerow(row)
 
 
+def parse_csv7(src_csv_name1, src_csv_name2):
+	count1 = 0; count2 = 0
+	list_src1 = []
+	list_src2 = []
+
+	with open(src_csv_name1, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			count1 += 1
+			list_src1.append(row)
+
+	with open(src_csv_name2, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			count2 += 1
+			list_src2.append(row)
+
+	print(f"count1: {count1}; count2: {count2}")
+	# print(f"src1:{list_src1[0]}, {list_src1[1]}; src2:{list_src2[0]}, {list_src2[1]}")
+
+	dir_name = "tmp3"
+	os.makedirs(dir_name, exist_ok=True)
+
+	for row1 in list_src1: # list_src1[1:]
+		# print(i)
+		csv_name = row1[0]
+		csv_name = csv_name.replace(" ", "-").replace(":", "-") + ".csv"
+
+		datetime1_1 = datetime.strptime(row1[0], "%Y-%m-%d %H:%M:%S")
+		datetime1_2 = datetime.strptime(row1[1], "%Y-%m-%d %H:%M:%S")
+		# print(f"time1:{datetime1_1}; time2:{datetime1_2}")
+
+		with open(dir_name+"/"+csv_name, mode="w", newline="", encoding="utf-8") as file:
+			writer = csv.writer(file)
+			writer.writerow(["vtime", "vangle"])
+
+			for row2 in list_src2:
+				datetime2 = datetime.strptime(row2[1], "%Y-%m-%d %H:%M:%S")
+
+				if datetime1_2 >= datetime2 and datetime1_1 <= datetime2:
+					writer.writerow([row2[1], row2[0]])
+
+def parse_csv8(src_csv_path, dst_png_path):
+	os.makedirs(dst_png_path, exist_ok=True)
+	matplotlib.rcParams['font.sans-serif'] = ['SimHei'] # show chinese
+
+	times_new_csv = []
+	with open("../../data/time-new.csv", mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			times_new_csv.append(row)
+	print(f"times new csv length: {len(times_new_csv)}; {times_new_csv[0][0]} 到 {times_new_csv[0][1]}")
+
+	path = Path(src_csv_path)
+	for name in path.rglob("*.csv"):
+		print(f"name: {name}")
+		list_src = []
+		with open(name, mode="r", newline="", encoding="utf-8") as file:
+			csv_reader = csv.reader(file)
+			for row in csv_reader:
+				list_src.append(row)
+		# print(f"value: {list_src[1]}")
+
+		t = os.path.splitext(os.path.basename(name))[0]
+		t = t[:10] + " " + t[11:].replace("-", ":")
+		# print(f"t: {t}")
+		datetime1 = datetime.strptime(t, "%Y-%m-%d %H:%M:%S")
+
+		for row in times_new_csv:
+			datetime2 = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+			if datetime1 == datetime2:
+				title = row
+				break
+
+		times = []
+		values = []
+		for row in list_src[1:]:
+			times.append(datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S"))
+			values.append(row[1])
+		times = list(reversed(times))
+		values = list(reversed(values))
+		values_int = [int(item) for item in values]
+		# print(f"time: {times[0]}; value: {values[0]}")
+
+		fig, ax = plt.subplots()
+		ax.plot(times, values_int, marker="o")
+		ax.set_xlabel("Time")
+		ax.set_ylabel("Value")
+		diff = datetime.strptime(title[1], '%Y-%m-%d %H:%M:%S') - datetime.strptime(title[0], '%Y-%m-%d %H:%M:%S')
+		hours = int(diff.total_seconds() // 3600)
+		miuntes = int((diff.total_seconds() % 3600) // 60)
+		seconds = int(diff.total_seconds() % 60)
+		# print(f"hours:{hours}; minutes:{miuntes}; seconds:{seconds}")
+		if hours == 0:
+			plt.title(str(title[0]) + " 到 " + str(title[1]) + "\n用时: " + str(miuntes) + "分钟 " + str(seconds) + "秒")
+		else:
+			plt.title(str(title[0]) + " 到 " + str(title[1]) + "\n用时: " + str(hours) + "小时 " + str(miuntes) + "分钟 " + str(seconds) + "秒")
+
+		fig.autofmt_xdate()
+
+		plt.savefig(dst_png_path+"/"+os.path.basename(name)+".png")
+		# plt.show()
+		plt.close(fig)
+
+def parse_csv9(src_csv_name, dst_csv_name):
+	times_new_csv = []
+	with open(src_csv_name, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			times_new_csv.append(row)
+	print(f"times new csv length: {len(times_new_csv)}; {times_new_csv[0][0]} 到 {times_new_csv[0][1]}")
+
+	with open(dst_csv_name, mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+		writer.writerow(["开始时间", "结束时间", "用时", "是否正常", "图像名"])
+
+		for row in times_new_csv:
+			diff = datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S') - datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+			hours = int(diff.total_seconds() // 3600)
+			miuntes = int((diff.total_seconds() % 3600) // 60)
+			seconds = int(diff.total_seconds() % 60)
+			if hours == 0:
+				times = str(miuntes) + "分钟" + str(seconds) + "秒"
+			else:
+				times = str(hours) + "小时" + str(miuntes) + "分钟" + str(seconds) + "秒"
+			# print(f"times: {times}")
+
+			name = row[0].replace(" ", "-").replace(":", "-") + ".csv.png"
+			# print(f"name: {name}")
+
+			writer.writerow([row[0], row[1], times, "", name])
+
+	# csv to excel
+	df = pd.read_csv(dst_csv_name)
+	df.to_excel(dst_csv_name+".xlsx", index=False)
+
 if __name__ == "__main__":
     # python test_parse_csv.py --src_dataset_path ../../data/database/regression --dst_dataset_path ../../data/database/regression_small
 	colorama.init(autoreset=True)
 	args = parse_args()
 
-	parse_csv(args.src_dataset_path, args.dst_dataset_path)
+	parse_csv9(args.src_dataset_path, args.dst_dataset_path)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

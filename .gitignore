@@ -30,11 +30,14 @@ demo/Python/datasets
 demo/Python/runs
 demo/Python/*.yaml
 demo/Python/result*
-demo/Python/tmp
+demo/Python/tmp*
 demo/Python/test.py
 demo/Python/*.bin.*
 demo/Python/*.bin
 demo/Python/*.data
 demo/Python/*.txt
 demo/Python/*.pth
+demo/Python/*.7z
 demo/Python/utils/__pycache__/
+*.avi
+demo/Python/logs

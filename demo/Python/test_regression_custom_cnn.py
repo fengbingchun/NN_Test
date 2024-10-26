@@ -44,7 +44,7 @@ def parse_args():
 	parser.add_argument("--model_name", type=str, help="the model generated during training or the model loaded during prediction")
 	parser.add_argument("--pretrained_model", type=str, default="", help="pretrained model loaded during training")
 	parser.add_argument("--predict_images_path", type=str, help="predict images path")
-	parser.add_argument("--gpu", type=str, default="0", help="set which graphics card to use")
+	parser.add_argument("--gpu", type=str, default="0", help="set which graphics card to use. it can also support multiple graphics cards at the same time, for example 0,1")
 
 	args = parser.parse_args()
 	return args

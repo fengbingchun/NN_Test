@@ -124,6 +124,7 @@
 			conda install -c pytorch -c nvidia -c conda-forge pytorch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 pytorch-cuda=11.8 ultralytics # pytorch 2.2.2
 			conda install -c conda-forge openvino=2024.0.0 # keep the same version as libopenvino
 			pip install nncf==2.8.0 # openvino INT8 need
+			pip install openpyxl # write excel file
 
 			git clone https://github.com/fengbingchun/NN_Test
 			cd NN_Test/demo/Python

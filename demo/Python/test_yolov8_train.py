@@ -22,7 +22,7 @@ def parse_args():
 	parser.add_argument("--lrf", type=float, default=0.01, help="final learning rate as a fraction of the initial rate=(lr0*lrf)")
 	parser.add_argument("--dropout", type=float, default=0.0, help="dropout rate for regularization in classification tasks")
 	parser.add_argument("--pretrained_model", type=str, default="", help="pretrained model loaded during training")
-	parser.add_argument("--gpu", type=str, default="0", help="set which graphics card to use")
+	parser.add_argument("--gpu", type=str, default="0", help="set which graphics card to use. it can also support multiple graphics cards at the same time, for example 0,1")
 	parser.add_argument("--augment", type=bool, default=False, help="augment inference")
 
 	args = parser.parse_args()
