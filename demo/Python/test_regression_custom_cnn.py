@@ -506,6 +506,10 @@ def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, ba
 	minimum_loss_train = 100.
 	highest_accuracy_val = 0.
 	minimum_loss_val = 100.
+	best_epoch_accuracy_train = 0
+	best_epoch_loss_train = 0
+	best_epoch_accuracy_val = 0
+	best_epoch_loss_val = 0
 
 	for epoch in range(epochs):
 		epoch_start = time.time()
@@ -571,12 +575,16 @@ def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, ba
 
 		if highest_accuracy_val < avg_val_acc:
 			highest_accuracy_val = avg_val_acc
+			best_epoch_accuracy_val = epoch + 1
 		if minimum_loss_val > avg_val_loss:
 			minimum_loss_val = avg_val_loss
+			best_epoch_loss_val = epoch + 1
 		if highest_accuracy_train < avg_train_acc:
 			highest_accuracy_train = avg_train_acc
+			best_epoch_accuracy_train = epoch + 1
 		if minimum_loss_train > avg_train_loss:
 			minimum_loss_train = avg_train_loss
+			best_epoch_loss_train = epoch + 1
 
 		if highest_accuracy_train > 0.99 and highest_accuracy_val < 0.5:
 			print(colorama.Fore.YELLOW + "overfitting")
@@ -587,7 +595,7 @@ def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, ba
 		# 	torch.save(model.state_dict(), model_name)
 		# 	break
 
-	print(f"train: loss:{minimum_loss_train:.6f}, acc:{highest_accuracy_train:.6f};  val: loss:{minimum_loss_val:.6f}, acc:{highest_accuracy_val:.6f}")
+	print(f"train: loss:{minimum_loss_train:.6f}, epoch:{best_epoch_loss_train}, acc:{highest_accuracy_train:.6f}, epoch:{best_epoch_accuracy_train};  val: loss:{minimum_loss_val:.6f}, epoch:{best_epoch_loss_val}, acc:{highest_accuracy_val:.6f}, epoch:{best_epoch_accuracy_val}")
 	# draw_graph(train_losses, train_accuracies, val_losses, val_accuracies)
 
 
@@ -672,7 +680,7 @@ if __name__ == "__main__":
 	set_gpu(args.gpu)
 
 	if args.task == "split":
-		# python test_regression_custom_cnn.py --task split --src_dataset_path ../../data/database/regression/FeO --dst_dataset_path datasets/regression --csv_file ../../data/database/regression/FeO.csv --resize (64,512) --ratios (0.9,0.05,0.05)
+		# python test_regression_custom_cnn.py --task split --src_dataset_path ../../data/database/regression --dst_dataset_path datasets/regression --csv_file ../../data/database/regression.csv --resize (64,512) --ratios (0.9,0.05,0.05)
 		split_regression_dataset(args.src_dataset_path, args.dst_dataset_path, args.csv_file, args.resize, args.fill_value, args.ratios)
 	elif args.task == "train":
 		# python test_regression_custom_cnn.py --task train --src_dataset_path datasets/regression --epochs 100 --mean (0.51105501,0.2900612,0.45467574) --std (0.27224947583159903,0.28995317923225,0.13527405631842085) --model_name best.pth --net resnet18 --batch_size 2 --lr 0.0005

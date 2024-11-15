@@ -118,6 +118,58 @@ def draw_cross_sectional(predict_result, src_image_name, dst_image_name, buckle,
 					buckle.extend(best_box)
 					buckle.extend([src_image_name, dst_image_name])
 
+def draw_cross_sectional(image, rect, name, src_image_name):
+	maxh, maxw = image.shape[:2]
+	h = int((rect[2] - rect[0]) / 8 + 0.5)
+	w = h * 8
+	xcenter = rect[0] + int((rect[2] - rect[0]) / 2 + 0.5)
+
+	x1 = max(0, int(xcenter - w / 2))
+	y1 = max(0, rect[1] - h - 1)
+	x2 = min(maxw, x1+w)
+	y2 = min(maxh, y1+h)
+	cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 1)
+
+	image2 = cv2.imread(src_image_name)
+	roi = image2[y1:y2, x1:x2]
+	resized = cv2.resize(roi, (512, 64))
+	cv2.imwrite(name+".png", resized)
+
+def save_image(predict_result, dst_image_name, image, src_image_name):
+	dir = os.path.dirname(dst_image_name)
+	name = os.path.basename(dst_image_name)
+	if len(predict_result.boxes.data) == 0:
+		cv2.imwrite(dir+"/abnormal/"+name, image)
+	else:
+		rects = []
+		# <====== modify according to actual situation
+		roi = [35, 115, 340, 205] # left top, right bottom
+		minw = 155
+		conf = 0.85
+
+		for i in range(len(predict_result.boxes.data)):
+			data = predict_result.boxes.data[i].tolist()
+			rect = [int(data[0]+0.5), int(data[1]+0.5), int(data[2]+0.5), int(data[3]+0.5), data[-2]]
+			if not (roi[0] < rect[0] < roi[2]) or not (roi[0] < rect[2] < roi[2]) or not (roi[1] < rect[1] < roi[3]) or not (roi[1] < rect[3] < roi[3]):
+				continue
+			rects.append(rect)
+
+		if len(rects) > 2 or len(rects) == 0:
+			cv2.imwrite(dir+"/abnormal/"+name, image)
+		elif len(rects) == 1:
+			if rects[0][2] - rects[0][0] > minw:
+				if rects[0][4] > conf:
+					draw_cross_sectional(image, rects[0], dir+"/good/"+name, src_image_name)
+					cv2.imwrite(dir+"/good/"+name, image)
+				else:
+					draw_cross_sectional(image, rects[0], dir+"/normal/"+name, src_image_name)
+					cv2.imwrite(dir+"/normal/"+name, image)
+			else:
+				cv2.imwrite(dir+"/obscured/"+name, image)
+		else:
+			cv2.imwrite(dir+"/obscured/"+name, image)
+
+
 def draw_rect(predict_result, src_image_name, dst_image_name, buckle, count):
 	# print_boxes_info(predict_result)
 	image = cv2.imread(src_image_name)
@@ -128,9 +180,10 @@ def draw_rect(predict_result, src_image_name, dst_image_name, buckle, count):
 		data = predict_result.boxes.data[i].tolist()
 		cv2.rectangle(image, (int(data[0]+0.5), int(data[1]+0.5)), (int(data[2]+0.5), int(data[3]+0.5)), (255,0,0), 1)
 		cv2.putText(image, f"{int(data[-1])},{data[-2]:.2f}", (int(data[0]+0.5), int(data[3]+0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1, cv2.LINE_AA)
-	cv2.imwrite(dst_image_name, image)
+	# cv2.imwrite(dst_image_name, image)
+	save_image(predict_result, dst_image_name, image, src_image_name)
 
-	draw_cross_sectional(predict_result, dst_image_name, dst_image_name, buckle, count)
+	# draw_cross_sectional(predict_result, dst_image_name, dst_image_name, buckle, count)
 
 def predict(model, task, dir_images, video_file, dir_result):
 	model = YOLO(model) # load an model, support format: *.pt, *.onnx, *.torchscript, *.engine, openvino_model
@@ -138,6 +191,10 @@ def predict(model, task, dir_images, video_file, dir_result):
 
 	if task == "detect" or task =="segment":
 		os.makedirs(dir_result, exist_ok=True)
+		os.makedirs(dir_result+"/good", exist_ok=True)
+		os.makedirs(dir_result+"/normal", exist_ok=True)
+		os.makedirs(dir_result+"/obscured", exist_ok=True)
+		os.makedirs(dir_result+"/abnormal", exist_ok=True)
 
 	device = "cuda" if torch.cuda.is_available() else "cpu"
 	buckle = []
@@ -148,7 +205,7 @@ def predict(model, task, dir_images, video_file, dir_result):
 		# print("images:", images)
 
 		for image in images:
-			time.sleep(0.95) # <====== comment out or modify
+			# time.sleep(0.95) # <====== comment out or modify
 			results = model.predict(dir_images+"/"+image, verbose=True, device=device)
 			# print("results:", results)
 

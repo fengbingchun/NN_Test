@@ -9,11 +9,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
 import pandas as pd
+from scipy.interpolate import interp1d
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="parse csv file")
 	parser.add_argument("--src_dataset_path", type=str, help="source dataset path")
+	parser.add_argument("--src_csv_file", type=str, help="source csv file")
 	parser.add_argument("--dst_dataset_path", type=str, default="", help="the path of the destination dataset after split")
+	parser.add_argument("--prefix", type=str, help="file name prefix")
 
 	args = parser.parse_args()
 	return args
@@ -402,11 +405,320 @@ def parse_csv9(src_csv_name, dst_csv_name):
 	df = pd.read_csv(dst_csv_name)
 	df.to_excel(dst_csv_name+".xlsx", index=False)
 
+def write_new_csv(image_name, time_start, time_end, lists_angle, save_path):
+	csv_name = image_name[:-4]
+	print(f"csv name: {csv_name}")
+
+	time_start = datetime.strptime(time_start, "%Y-%m-%d %H:%M:%S")
+	time_end = datetime.strptime(time_end, "%Y-%m-%d %H:%M:%S")
+	time_consuming = str(int((time_end - time_start).total_seconds()))
+	# print(f"time start: {time_start}; time end: {time_end}; time-consuming: {time_consuming}")
+
+	with open(save_path+"/"+csv_name, mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+		writer.writerow(["开始时间", "结束时间", "用时(秒)", "角度"])
+
+		count = 0
+		for row in lists_angle:
+			tmp = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S")
+			if time_end >= tmp and time_start <= tmp:
+				if count == 0:
+					writer.writerow([time_start, time_end, time_consuming, row[0]])
+					count += 1
+				else:
+					writer.writerow(["", "", "", row[0]])
+
+def parse_csv10(src_excel_name, dst_png_path):
+	df = pd.read_excel(src_excel_name)
+	csv_name = src_excel_name + ".csv"
+	df.to_csv(csv_name, index=False)
+
+	lists_csv = []
+	with open(csv_name, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			lists_csv.append(row)
+	print(f"len: {len(lists_csv)}; value: {lists_csv[1]}")
+
+	normal = dst_png_path + "/正常"
+	abnormal = dst_png_path + "/异常"
+	other = dst_png_path + "/其它"
+	other2 = dst_png_path + "/未标注"
+	os.makedirs(normal, exist_ok=True)
+	os.makedirs(abnormal, exist_ok=True)
+	os.makedirs(other, exist_ok=True)
+	os.makedirs(other2, exist_ok=True)
+
+	angle_csv_name = "../../data/value-new.csv"
+	lists_angle = []
+	with open(angle_csv_name, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			lists_angle.append(row)
+	print(f"lists angle len: {len(lists_angle)}; value: {lists_angle[0]}")
+
+	src_images_path = "tmp7"
+	for row in lists_csv[1:]:
+		if row[3] == "正常":
+			shutil.copy(src_images_path+"/"+row[4], normal)
+			write_new_csv(row[4], row[0], row[1], lists_angle, normal)
+		elif row[3] == "异常":
+			shutil.copy(src_images_path+"/"+row[4], abnormal)
+			write_new_csv(row[4], row[0], row[1], lists_angle, abnormal)
+		elif row[3] == "":
+			shutil.copy(src_images_path+"/"+row[4], other2)
+			# write_new_csv(row[4], row[0], row[1], lists_angle, other2)
+		else:
+			shutil.copy(src_images_path+"/"+row[4], other)
+			write_new_csv(row[4], row[0], row[1], lists_angle, other)
+
+def shorten_list(lst):
+	lst1 = [0] + lst
+	lst2 = lst + [0]
+
+	lst3 = [(a + b) / 2 for a, b in zip(lst1, lst2)]
+	lst4 = lst3[1:-1]
+	# print(f"lst1: {lst1}; lst2:{lst2}, lst3:{lst3}, lst4:{lst4}")
+
+	return lst4
+
+def expand_list(lst):
+	result = []
+
+	for i in range(len(lst)-1):
+		result.append(lst[i])
+		average = (lst[i]+lst[i+1]) / 2
+		result.append(average)
+
+	result.append(lst[-1])
+	# print(f"result: {result}")
+
+	return result
+
+def adjust_list_length():
+	# shorten
+	lst = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+	target_length = 7
+	while len(lst) > target_length:
+		lst = shorten_list(lst)
+
+	lst = [int(round(x)) for x in lst]
+	# lst = [int(x+0.5) for x in lst]
+	print(f"lst: {lst}")
+
+	# expand
+	lst = [1, 2, 3, 4, 5]
+	while len(lst) < target_length:
+		lst = expand_list(lst)
+
+	while len(lst) > target_length:
+		lst = shorten_list(lst)
+
+	lst = [int(round(x)) for x in lst]
+	# lst = [int(x+0.5) for x in lst]
+	print(f"lst: {lst}")
+
+def get_same_length(lists, target_length):
+	lists = [np.array(lst) for lst in lists]
+	adjusted_lists = []
+
+	for lst in lists:
+		length = len(lst)
+
+		if length == target_length:
+			adjusted_lists.append(lst)
+		elif length < target_length:
+			x = np.linspace(0, 1, length)
+			x_new = np.linspace(0, 1, target_length)
+			f = interp1d(x, lst, fill_value="extrapolate")
+			lst_new = [int(v+0.5) for v in f(x_new)]
+			# print(f"lst_new: {lst_new}")
+			adjusted_lists.append(lst_new)
+		else:
+			indices = np.linspace(0, length-1, target_length, dtype=int)
+			indices = np.clip(indices, 0, length-1)
+			lst_new = lst[indices]
+			# print(f"lst_new: {lst_new}")
+			adjusted_lists.append(lst_new.tolist())
+
+	return adjusted_lists
+
+def parse_csv11(src_csv_path, dst_csv_path):
+	path = Path(src_csv_path)
+	for name in path.rglob("*.csv"):
+		# print(f"name: {name}")
+		lists_csv = []
+		with open(name, mode="r", newline="", encoding="utf-8") as file:
+			csv_reader = csv.reader(file)
+			for row in csv_reader:
+				lists_csv.append(row)
+		print(f"csv: {lists_csv[0]}, {lists_csv[1]}")
+		raise
+
+	# lists = [
+	# 	[53, 47, 53, 59, 65, 71, 77, 83, 89, 95, 99, 99],
+	# 	[49, 55, 61, 67, 73, 73, 85, 98, 54, 49, 45],
+	# 	[47, 54, 59, 90, 98, 98, 89, 51]
+	# ]
+
+	# adjusted_lists = get_same_length(lists, 10)
+	# for i in range(len(lists)):
+	# 	print(f"value1: {lists[i]}")
+	# 	print(f"value2: {adjusted_lists[i]}")
+
+def copy_csv_file(dst_csv_path, lists_csv_src1, lists_csv_src2):
+	os.makedirs(dst_csv_path, exist_ok=True)
+
+	for row1 in lists_csv_src1:
+		name1 = os.path.splitext(os.path.basename(row1))[0]
+		time1 = datetime.strptime(name1, "%Y%m%d%H%M%S")
+		# print(f"time1: {time1}")
+
+		for row2 in lists_csv_src2:
+			name2 = os.path.splitext(os.path.basename(row2))[0]
+			time2 = datetime.strptime(name2, "%Y-%m-%d-%H-%M-%S")
+			# print(f"time2: {time2}")
+
+			if time1 == time2:
+				shutil.copy(row1, dst_csv_path)
+				os.rename(dst_csv_path+"/"+name1+".csv", dst_csv_path+"/"+name2+"_temperature.csv")
+				break
+
+def parse_csv12(src_csv_path, dst_csv_path):
+	csv_temperature = src_csv_path + "/temperature"
+	csv_normal = src_csv_path + "/normal"
+	csv_abnormal = src_csv_path + "/abnormal"
+
+	path = Path(csv_normal)
+	lists_normal = []
+	for name in path.rglob("*.csv"):
+		lists_normal.append(name)
+	# print(f"name: {lists_normal[0]}, {lists_normal[1]}")
+
+	path = Path(csv_abnormal)
+	lists_abnormal = []
+	for name in path.rglob("*.csv"):
+		lists_abnormal.append(name)
+
+	path = Path(csv_temperature)
+	lists_temperature = []
+	for name in path.rglob("*.csv"):
+		lists_temperature.append(name)
+
+	copy_csv_file(dst_csv_path+"/正常_温度_CSV", lists_temperature, lists_normal)
+	copy_csv_file(dst_csv_path+"/异常_温度_CSV", lists_temperature, lists_abnormal)
+
+def _get_suitable_name(time1, candidate):
+	if len(candidate) == 1:
+		return candidate[0][0]
+
+	minseconds = 10000
+	name = candidate[0][0]
+	for v in candidate:
+		diff = abs((time1 - v[1]).total_seconds() - 2*60*60)
+		if diff < minseconds:
+			minseconds = diff
+			name = v[0]
+
+	return name
+
+def parse_csv13(src_csv_file, src_dataset_path, dst_dataset_path, prefix):
+	values = []
+	with open(src_csv_file, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			values.append(row)
+	print(f"length: {len(values)}; value: {values[0]}")
+
+	images_name = []
+	for name in Path(src_dataset_path).rglob("*.jpg"):
+		images_name.append(os.path.splitext(os.path.basename(name))[0])
+	print(f"images count: {len(images_name)}; name: {images_name[0]}")
+
+	os.makedirs(dst_dataset_path, exist_ok=True)
+	minseconds = 2*60*60-1*60
+	maxseconds = 2*60*60+5*60
+
+	results = []
+
+	for value in values:
+		time1 = datetime.strptime(value[0], "%Y/%m/%d %H:%M")
+
+		candidate = []
+		for name in images_name:
+			name1 = f"{name[:4]}-{name[4:6]}-{name[6:8]} {name[8:10]}:{name[10:12]}:{name[12:]}"
+			time2 = datetime.strptime(name1, "%Y-%m-%d %H:%M:%S")
+			diff = (time1 - time2).total_seconds()
+			# print(f"time1: {time1}; time2: {time2}; diff: {diff}")
+			if diff < 0:
+				break
+			if diff > minseconds and diff < maxseconds:
+				candidate.append([name, time2])
+
+		if len(candidate) == 0:
+			continue
+
+		name = _get_suitable_name(time1, candidate)
+		# print(f"time1: {time1}; name: {name}")
+		results.append([value[0], value[1], name])
+
+	print(f"results length: {len(results)}")
+	with open(dst_dataset_path+"/result.csv", mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+
+		for row in results:
+			writer.writerow([row[0], row[1], prefix+"_"+row[2]+".jpg.png"])
+
+			shutil.copy(src_dataset_path+"/"+row[2]+".jpg", dst_dataset_path)
+			os.rename(dst_dataset_path+"/"+row[2]+".jpg", dst_dataset_path+"/"+prefix+"_"+row[2]+".jpg")
+			shutil.copy(src_dataset_path+"/"+row[2]+".jpg.png", dst_dataset_path)
+			os.rename(dst_dataset_path+"/"+row[2]+".jpg.png", dst_dataset_path+"/"+prefix+"_"+row[2]+".jpg.png")
+
+def parse_csv14(src_csv_file):
+	values = []
+	with open(src_csv_file, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			values.append(row)
+	print(f"length: {len(values)}; value: {values[0]}")
+
+	flag = False
+	minseconds = 10*60
+	results = []
+	for i in range(len(values)-1):
+		if flag:
+			flag = False
+			continue
+
+		time1 = datetime.strptime(values[i][0], "%Y/%m/%d %H:%M")
+		time2 = datetime.strptime(values[i+1][0], "%Y/%m/%d %H:%M")
+		diff = (time2 - time1).total_seconds()
+		if diff < minseconds:
+			flag = True
+			print(f"time1: {time1}, value: {values[i][1]}; time2: {time2}, value: {values[i+1][1]}; diff: {diff}")
+		else:
+			flag = False
+			results.append(values[i])
+
+	if not flag:
+		results.append(values[len(values)-1])
+	print(f"results length: {len(results)}")
+
+	path = Path(src_csv_file)
+	path_name = path.parent
+	file_name = path.name
+	print(f"path name: {path_name}; file name: {file_name}")
+
+	with open(str(path_name)+"/result_"+str(file_name), mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+
+		for row in results:
+			writer.writerow(row)
+
 if __name__ == "__main__":
-    # python test_parse_csv.py --src_dataset_path ../../data/database/regression --dst_dataset_path ../../data/database/regression_small
 	colorama.init(autoreset=True)
 	args = parse_args()
 
-	parse_csv9(args.src_dataset_path, args.dst_dataset_path)
+	parse_csv13(args.src_csv_file, args.src_dataset_path, args.dst_dataset_path, args.prefix)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

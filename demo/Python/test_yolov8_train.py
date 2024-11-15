@@ -11,9 +11,9 @@ import os
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="YOLOv8 train")
-	parser.add_argument("--yaml", required=True, type=str, help="yaml file or datasets path(classify)")
-	parser.add_argument("--epochs", required=True, type=int, help="number of training")
 	parser.add_argument("--task", required=True, type=str, choices=["detect", "segment", "classify"], help="specify what kind of task")
+	parser.add_argument("--yaml", required=True, type=str, help="yaml file or datasets path(classify)")
+	parser.add_argument("--epochs", type=int, default=1000, help="number of training")
 	parser.add_argument("--imgsz", type=int, default=640, help="input net image size")
 	parser.add_argument("--patience", type=int, default=100, help="number of epochs to wait without improvement in validation metrics before early stopping the training")
 	parser.add_argument("--batch", type=int, default=16, help="batch size")
