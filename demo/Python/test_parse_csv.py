@@ -10,13 +10,19 @@ import numpy as np
 import matplotlib
 import pandas as pd
 from scipy.interpolate import interp1d
+import cv2
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="parse csv file")
-	parser.add_argument("--src_dataset_path", type=str, help="source dataset path")
-	parser.add_argument("--src_csv_file", type=str, help="source csv file")
-	parser.add_argument("--dst_dataset_path", type=str, default="", help="the path of the destination dataset after split")
+	parser.add_argument("--src_dataset_path1", type=str, help="source dataset path1")
+	parser.add_argument("--src_dataset_path2", type=str, help="source dataset path2")
+	parser.add_argument("--src_csv_file1", type=str, help="source csv file1")
+	parser.add_argument("--src_csv_file2", type=str, help="source csv file1")
+	parser.add_argument("--dst_csv_file", type=str, help="destination csv file")
+	parser.add_argument("--dst_dataset_path1", type=str, default="", help="the path of the destination dataset1 after split")
+	parser.add_argument("--dst_dataset_path2", type=str, default="", help="the path of the destination dataset2 after split")
 	parser.add_argument("--prefix", type=str, help="file name prefix")
+	parser.add_argument("--suffix", type=str, help="file name suffix")
 
 	args = parser.parse_args()
 	return args
@@ -715,10 +721,286 @@ def parse_csv14(src_csv_file):
 		for row in results:
 			writer.writerow(row)
 
+def _cal_mean_std(dataset_path):
+	imgs = []
+	std_reds = []
+	std_greens = []
+	std_blues = []
+
+	directory = Path(dataset_path)
+	for file in directory.iterdir(): # subdirectories are not traversed
+		if file.is_file():
+			img = cv2.imread(str(file))
+			if img is None:
+				raise FileNotFoundError(f"image not found: {file}")
+			img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # bgr -> rgb
+			imgs.append(img)
+
+			img_array = np.array(img)
+			std_reds.append(np.std(img_array[:,:,0]))
+			std_greens.append(np.std(img_array[:,:,1]))
+			std_blues.append(np.std(img_array[:,:,2]))
+
+	arr = np.array(imgs)
+	# print("arr.shape:", arr.shape)
+	mean = np.mean(arr, axis=(0, 1, 2)) / 255
+	std = [np.mean(std_reds) / 255, np.mean(std_greens) / 255, np.mean(std_blues) / 255] # R,G,B
+	print(f"mean: {mean}; std: {std}")
+
+def parse_csv15(src_dataset_path1, src_dataset_path2, dst_dataset_path1, dst_dataset_path2):
+	src_train_csv_name = src_dataset_path1 + "/train.csv"
+	src_val_csv_name = src_dataset_path1 + "/val.csv"
+
+	src_train_values = []
+	with open(src_train_csv_name, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			src_train_values.append(row)
+	print(f"train length: {len(src_train_values)}; value: {src_train_values[0]}")
+
+	src_val_values = []
+	with open(src_val_csv_name, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			src_val_values.append(row)
+	print(f"val length: {len(src_val_values)}; value: {src_val_values[0]}")
+
+	path = Path(src_dataset_path2)
+	count = 0
+	images_name = []
+
+	for image in path.rglob("*.jpg.png"):
+		image_name = image.name
+		# print(image_name)
+		images_name.append(image_name)
+		count += 1
+	print(f"images count:{count}")
+
+	count = 0
+	src_train_values_new = []
+	for img1 in src_train_values:
+		flag = False
+		for img2 in images_name:
+			if img1[2][:-6] == img2[:-8]:
+				flag = True
+				break
+
+		if not flag:
+			count += 1
+			# print(f"train image not found: {img1[2]}")
+		else:
+			src_train_values_new.append(img1)
+	print(f"train image not found count: {count}; src train values new: {len(src_train_values_new)}")
+
+	count = 0
+	src_val_values_new =[]
+	for img1 in src_val_values:
+		flag = False
+		for img2 in images_name:
+			if img1[2][:-6] == img2[:-8]:
+				flag = True
+				break
+
+		if not flag:
+			count += 1
+			# print(f"val image not found: {img1[2]}")
+		else:
+			src_val_values_new.append(img1)
+	print(f"val image not found count: {count}, src val values new: {len(src_val_values_new)}")
+
+	os.makedirs(dst_dataset_path1+"/train", exist_ok=True)
+	os.makedirs(dst_dataset_path1+"/val", exist_ok=True)
+
+	dst1_train_csv_name = dst_dataset_path1 + "/train.csv"
+	dst1_val_csv_name = dst_dataset_path1 + "/val.csv"
+
+	with open(dst1_train_csv_name, mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+
+		for row in src_train_values_new:
+			writer.writerow(row)
+			shutil.copy(src_dataset_path1+"/train/"+row[2], dst_dataset_path1+"/train")
+
+	with open(dst1_val_csv_name, mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+
+		for row in src_val_values_new:
+			writer.writerow(row)
+			shutil.copy(src_dataset_path1+"/val/"+row[2], dst_dataset_path1+"/val")
+
+	os.makedirs(dst_dataset_path2+"/train", exist_ok=True)
+	os.makedirs(dst_dataset_path2+"/val", exist_ok=True)
+
+	dst2_train_csv_name = dst_dataset_path2 + "/train.csv"
+	dst2_val_csv_name = dst_dataset_path2 + "/val.csv"
+
+	with open(dst2_train_csv_name, mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+
+		for src_row in src_train_values_new:
+			img_name = src_row[2]
+			img_name = img_name[:-6]
+			img_name += ".jpg.png"
+			# print(f"img_name: {img_name}"); raise
+
+			dst_row = [src_row[0], src_row[1], img_name]
+			writer.writerow(dst_row)
+			shutil.copy(src_dataset_path2+"/"+img_name, dst_dataset_path2+"/train")
+
+	with open(dst2_val_csv_name, mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+
+		for src_row in src_val_values_new:
+			img_name = src_row[2]
+			img_name = img_name[:-6]
+			img_name += ".jpg.png"
+			# print(f"img_name: {img_name}"); raise
+
+			dst_row = [src_row[0], src_row[1], img_name]
+			writer.writerow(dst_row)
+			shutil.copy(src_dataset_path2+"/"+img_name, dst_dataset_path2+"/val")
+
+	_cal_mean_std(dst_dataset_path1+"/train")
+	_cal_mean_std(dst_dataset_path2+"/train")
+
+def parse_csv16(src_csv_file, src_dataset_path, suffix, dst_dataset_path):
+	images_name1 = []
+	with open(src_csv_file, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			images_name1.append(row[2])
+	print(f"length: {len(images_name1)}; value: {images_name1[0]}")
+
+	images_name2 = []
+	count = 0
+	path = Path(src_dataset_path)
+	for img in path.rglob("*."+suffix):
+		# print(f"img: {img}")
+		images_name2.append(img)
+		count += 1
+	print(f"images count: {count}, name: {images_name2[0]}")
+
+	os.makedirs(dst_dataset_path, exist_ok=True)
+
+	for img1 in images_name1:
+		flag = False
+		for img2 in images_name2:
+			name = str(img2.name)
+			if str(img1)[:-8] == name[:-4]:
+				# print(f"name: {name}")
+				shutil.copy(img2, dst_dataset_path)
+				flag = True
+				break
+
+		if not flag:
+			raise ValueError(f"does't exist: {img1}")
+
+def parse_csv17(src_csv_file, src_dataset_path, suffix, dst_datset_path):
+	images_name1 = []
+	count = 0
+	path = Path(src_dataset_path)
+	for img in path.rglob("*."+suffix):
+		# print(f"img: {img}")
+		images_name1.append(img)
+		count += 1
+	print(f"images count: {count}, name: {images_name1[0]}")
+
+	images_name2 = []
+	with open(src_csv_file, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			images_name2.append(row)
+	print(f"length: {len(images_name2)}; value: {images_name2[0]}")
+
+	path = Path(src_csv_file)
+	dst_csv_file = dst_datset_path + "/" + str(path.name)
+	print(f"dst csv file: {dst_csv_file}")
+
+	with open(dst_csv_file, mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+
+		for img1 in images_name1:
+			name1 = str(img1.name)[:-4]
+			flag = False
+
+			for img2 in images_name2:
+				name2 = img2[2][:-8]
+				# print(f"name1: {name1}; name2: {name2}"); raise
+				if name1 == name2:
+					flag = True
+					writer.writerow(img2)
+					break
+
+			if not flag:
+				raise ValueError(f"mismatch: {img1}")
+
+def parse_csv18(src_csv_file, src_dataset_path, suffix, dst_dataset_path):
+	images_name1 = []
+	with open(src_csv_file, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			images_name1.append(row[2])
+	print(f"length: {len(images_name1)}; value: {images_name1[0]}")
+
+	images_name2 = []
+	count = 0
+	path = Path(src_dataset_path)
+	for img in path.rglob("*."+suffix):
+		# print(f"img: {img}")
+		images_name2.append(img)
+		count += 1
+	print(f"images count: {count}, name: {images_name2[0]}")
+
+	os.makedirs(dst_dataset_path, exist_ok=True)
+
+	for img1 in images_name1:
+		flag = False
+		for img2 in images_name2:
+			name = str(img2.name)
+			# print(f"name: {str(img1)[:-4]}; {name}"); raise
+			if str(img1)[:-4] == name:
+				# print(f"name: {name}")
+				shutil.copy(img2, dst_dataset_path)
+				flag = True
+				break
+
+		if not flag:
+			print(colorama.Fore.YELLOW, f"does't exist: {str(img1)[:-4]}")
+
+def parse_csv19(src_csv_file1, src_csv_file2, dst_csv_file):
+	if not Path(src_csv_file1).exists() or not Path(src_csv_file2).exists():
+		raise FileNotFoundError(f"file doesn't exist: {src_csv_file1} or {src_csv_file2}")
+
+	images_name1 = []
+	with open(src_csv_file1, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			images_name1.append(row)
+	print(f"length: {len(images_name1)}; value: {images_name1[0]}")
+
+	images_name2 = []
+	with open(src_csv_file2, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			images_name2.append(row)
+	print(f"length: {len(images_name2)}; value: {images_name2[0]}")
+
+	if len(images_name1) != len(images_name2):
+		raise ValueError(f"they must be of equal length: {len(images_name1)}:{len(images_name2)}")
+
+	with open(dst_csv_file, mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+
+		for i in range(len(images_name1)):
+			if images_name1[i][2][:-4] != images_name2[i][0]:
+				raise ValueError(f"mismatch: {images_name1[i][2][:-4]}:{images_name2[i][0]}")
+			writer.writerow(images_name1[i][:-1] + images_name2[i])
+
+
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
 
-	parse_csv13(args.src_csv_file, args.src_dataset_path, args.dst_dataset_path, args.prefix)
+	parse_csv19(args.src_csv_file1, args.src_csv_file2, args.dst_csv_file)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

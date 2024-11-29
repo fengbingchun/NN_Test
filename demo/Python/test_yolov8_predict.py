@@ -6,6 +6,8 @@ import torch
 import cv2
 from datetime import datetime, timedelta
 import time
+from pathlib import Path
+import csv
 
 import numpy as np
 np.bool = np.bool_ # Fix Error: AttributeError: module 'numpy' has no attribute 'bool'. OR: downgrade numpy: pip unistall numpy; pip install numpy==1.23.1
@@ -118,6 +120,18 @@ def draw_cross_sectional(predict_result, src_image_name, dst_image_name, buckle,
 					buckle.extend(best_box)
 					buckle.extend([src_image_name, dst_image_name])
 
+def write_rect(name, x1, y1, x2, y2):
+	image = cv2.imread(name)
+	path = Path(name)
+	name = str(path.name)
+
+	with open("result.csv", mode="a", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+		writer.writerow([name, x1, y1, x2, y2])
+
+	# cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 1)
+	# cv2.imwrite(name, image)
+
 def draw_cross_sectional(image, rect, name, src_image_name):
 	maxh, maxw = image.shape[:2]
 	h = int((rect[2] - rect[0]) / 8 + 0.5)
@@ -134,6 +148,8 @@ def draw_cross_sectional(image, rect, name, src_image_name):
 	roi = image2[y1:y2, x1:x2]
 	resized = cv2.resize(roi, (512, 64))
 	cv2.imwrite(name+".png", resized)
+
+	write_rect(src_image_name, x1, y1, x2, y2)
 
 def save_image(predict_result, dst_image_name, image, src_image_name):
 	dir = os.path.dirname(dst_image_name)
@@ -217,7 +233,7 @@ def predict(model, task, dir_images, video_file, dir_result):
 				print(f"class names:{results[0].names}: top5: {results[0].probs.top5}; conf:{results[0].probs.top5conf}")
 
 if __name__ == "__main__":
-	# python test_yolov8_predict.py --model runs/detect/train10/weights/best_int8.engine --dir_images datasets/melon_new_detect/images/test --dir_result result_detect_engine_int8 --task classify
+	# python test_yolov8_predict.py --model runs/detect/train10/weights/best_int8.engine --dir_images datasets/melon_new_detect/images/test --dir_result result_detect_engine_int8 --task detect
 	colorama.init(autoreset=True)
 	args = parse_args()
 	if args.dir_images == "" and args.video_file == "":
