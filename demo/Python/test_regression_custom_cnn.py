@@ -475,7 +475,7 @@ def calculate_hit_rate(labels_src, labels_dst, length, threshold):
 
 	count = 0
 	for i in range(length):
-		if abs(labels_src[i] - labels_dst[i]) < threshold:
+		if abs(labels_src[i] - labels_dst[i]) <= threshold:
 			count = count + 1
 	return float(count) / length
 
@@ -658,7 +658,7 @@ def predict(model_name, images_path, mean, std, net, threshold, csv_file, last_f
 			value1 = output[0,0].item()
 			value2 = ground_truth[os.path.basename(image_name)]
 			result = 0
-			if abs(value1 - value2) < threshold:
+			if abs(value1 - value2) <= threshold:
 				result = 1
 				count = count + 1
 			print(f"{os.path.basename(image_name)}\t\t\t{value2:.2f}\t\t{value1:.4f}\t\t{result}")
