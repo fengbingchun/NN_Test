@@ -27,25 +27,24 @@ def parse_args():
 	args = parser.parse_args()
 	return args
 
-def create_dirs(dst_dataset_path, feo_dirs_name):
-	for _, value in feo_dirs_name.items():
+def create_dirs(dst_dataset_path, dirs_name):
+	for _, value in dirs_name.items():
 		os.makedirs(dst_dataset_path+"/"+value, exist_ok=True)
 
-def extract_feo(csv_name):
-	# csv fields: date feo1 image_name feo2
-	feos_images = {"6.5":[], "7.0":[], "7":[], "7.5":[], "8.0":[], "8":[], "8.5":[], "9.0":[], "9":[], "9.5":[], "10.0":[], "10":[], "10.5":[], "11.0":[], "11":[]}
+def extract_images(csv_name):
+	images = {"6.5":[], "7.0":[], "7":[], "7.5":[], "8.0":[], "8":[], "8.5":[], "9.0":[], "9":[], "9.5":[], "10.0":[], "10":[], "10.5":[], "11.0":[], "11":[]}
 	with open(csv_name, mode="r", newline="", encoding="utf-8") as file:
 		csv_reader = csv.reader(file)
 		for row in csv_reader:
-			feos_images[row[3]].append(row[2])
+			images[row[3]].append(row[2])
 
-	return feos_images
+	return images
 
-def copy_images(feo_dirs_name, feos_images, src_dataset_path, dst_dataset_path):
-	for feo, images in feos_images.items():
-		save_image_path = dst_dataset_path + "/" + feo_dirs_name[feo]
+def copy_images(dirs_name, target_images, src_dataset_path, dst_dataset_path):
+	for key, images in target_images.items():
+		save_image_path = dst_dataset_path + "/" + dirs_name[key]
 		for image in images:
-			src_image_name = src_dataset_path+"/FeO/"+image
+			src_image_name = src_dataset_path+"/target/"+image
 			shutil.copy(src_image_name, save_image_path)
 
 def count_images(dataset_path):
@@ -57,30 +56,30 @@ def count_images(dataset_path):
 	return count
 
 def parse_csv(src_dataset_path, dst_dataset_path):
-	feo_dirs_name = {"6.5":"six_five", "7.0":"seven_zero", "7":"seven_zero", "7.5":"seven_five", "8.0":"eight_zero", "8":"eight_zero", "8.5":"eight_five", "9.0":"nine_zero", "9":"nine_zero", "9.5":"nine_five", "10.0":"ten_zero", "10":"ten_zero", "10.5":"ten_five", "11.0":"eleven_zero", "11":"eleven_zero"}
-	create_dirs(dst_dataset_path, feo_dirs_name)
+	dirs_name = {"6.5":"six_five", "7.0":"seven_zero", "7":"seven_zero", "7.5":"seven_five", "8.0":"eight_zero", "8":"eight_zero", "8.5":"eight_five", "9.0":"nine_zero", "9":"nine_zero", "9.5":"nine_five", "10.0":"ten_zero", "10":"ten_zero", "10.5":"ten_five", "11.0":"eleven_zero", "11":"eleven_zero"}
+	create_dirs(dst_dataset_path, dirs_name)
 
-	feo_images = extract_feo(src_dataset_path+"/FeO.sort.csv")
+	target_images = extract_images(src_dataset_path+"/target.sort.csv")
 
-	copy_images(feo_dirs_name, feo_images, src_dataset_path, dst_dataset_path)
+	copy_images(dirs_name, target_images, src_dataset_path, dst_dataset_path)
 
-	src_images_count = count_images(src_dataset_path+"/FeO")
+	src_images_count = count_images(src_dataset_path+"/target")
 	dst_images_count = count_images(dst_dataset_path)
 	assert src_images_count == dst_images_count, f"the number of images in the source path and dst path must be equal: {src_images_count} : {dst_images_count}"
 
-	for feo, path in feo_dirs_name.items():
-		if feo in {"7", "8", "9", "10", "11"}:
+	for key, path in dirs_name.items():
+		if key in {"7", "8", "9", "10", "11"}:
 			continue
 		count = count_images(dst_dataset_path+"/"+path)
-		print(f"{feo} images count: {count}")
+		print(f"{key} images count: {count}")
 	print(f"total number of images: {dst_images_count}")
 
 
 def parse_csv2(src_dataset_path, dst_dataset_path):
-	src_csv_name = src_dataset_path + "/FeO.csv"
-	src_images_name = src_dataset_path + "/FeO/"
-	dst_csv_name = dst_dataset_path + "/FeO.csv"
-	dst_images_name = dst_dataset_path + "/FeO/"
+	src_csv_name = src_dataset_path + "/target.csv"
+	src_images_name = src_dataset_path + "/target/"
+	dst_csv_name = dst_dataset_path + "/target.csv"
+	dst_images_name = dst_dataset_path + "/target/"
 
 	os.makedirs(dst_images_name)
 
@@ -131,10 +130,10 @@ def parse_csv3(csv1, csv2):
 				print(item1) # same item
 
 def parse_csv4(src_dataset_path, dst_dataset_path):
-	src_csv_name = src_dataset_path + "/FeO.csv"
-	src_images_name = src_dataset_path + "/FeO/"
-	dst_csv_name = dst_dataset_path + "/FeO.csv"
-	dst_images_name = dst_dataset_path + "/FeO/"
+	src_csv_name = src_dataset_path + "/target.csv"
+	src_images_name = src_dataset_path + "/target/"
+	dst_csv_name = dst_dataset_path + "/target.csv"
+	dst_images_name = dst_dataset_path + "/target/"
 
 	os.makedirs(dst_images_name)
 
@@ -173,8 +172,8 @@ def parse_csv4(src_dataset_path, dst_dataset_path):
 			shutil.copy(src_images_name+"/"+row[2], dst_images_name)
 
 def parse_csv5(src_dataset_path, dst_dataset_path): # first run parse_csv4
-	src_csv_name = src_dataset_path + "/FeO.csv"
-	src_images_name = src_dataset_path + "/FeO/"
+	src_csv_name = src_dataset_path + "/target.csv"
+	src_images_name = src_dataset_path + "/target/"
 
 	list_src = []
 	list_dst = []
@@ -229,7 +228,7 @@ def parse_csv5(src_dataset_path, dst_dataset_path): # first run parse_csv4
 		else:
 			raise FileNotFoundError(f"image no exist: {file}")
 
-	dst_csv_name = src_dataset_path + "/FeO.sort.csv"
+	dst_csv_name = src_dataset_path + "/target.sort.csv"
 	with open(dst_csv_name, mode="w", newline="", encoding="utf-8") as file:
 		writer = csv.writer(file)
 
@@ -239,8 +238,8 @@ def parse_csv5(src_dataset_path, dst_dataset_path): # first run parse_csv4
 	print(f"length: list dst:{len(list_dst)}; list dst2:{len(list_dst2)}; list remove imgs:{len(remove_imgs)}")
 
 def parse_csv6(src_dataset_path, dst_dataset_path): # first: run parse_csv5, second:remove some abnormal images
-	src_csv_name = src_dataset_path + "/FeO.sort.csv"
-	src_images_name = src_dataset_path + "/FeO/"
+	src_csv_name = src_dataset_path + "/target.sort.csv"
+	src_images_name = src_dataset_path + "/target/"
 
 	path = Path(src_images_name)
 	count = 0
@@ -996,11 +995,59 @@ def parse_csv19(src_csv_file1, src_csv_file2, dst_csv_file):
 				raise ValueError(f"mismatch: {images_name1[i][2][:-4]}:{images_name2[i][0]}")
 			writer.writerow(images_name1[i][:-1] + images_name2[i])
 
+def parse_csv20(src_csv_file, src_dataset_path, suffix, dst_dataset_path):
+	path = Path(src_dataset_path)
+	video_names = []
+	for v in path.rglob("*."+suffix):
+		video_names.append(v)
+	print(f"video count: {len(video_names)}, name: {video_names[0]}")
+
+	time_names = []
+	with open(src_csv_file, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			time_names.append(row[0])
+	print(f"time count: {len(time_names)}, name: {time_names[0]}")
+
+	os.makedirs(dst_dataset_path, exist_ok=True)
+
+	count = 0
+	for name1 in time_names:
+		flag = False
+		time1 = datetime.strptime(name1, "%Y/%m/%d %H:%M")
+		time11 = time1.replace(minute=0, second=0, microsecond=0)
+		# print(f"time1: {time1}")
+
+		for name2 in video_names:
+			time2 = name2.name
+			time2 = time2[2:-4]
+			time2 = datetime.strptime(time2, "%Y%m%d%H%M%S")
+			time21 = time2.replace(minute=0, second=0, microsecond=0)
+			# print(f"time2: {time2}"); raise
+
+			# if time11 == time21 and time1 >= time2:
+			# 	# shutil.copy(name2, dst_dataset_path)
+			# 	flag = True
+			# 	break
+
+			time22 = time2 + timedelta(hours=1)
+			# print(f"time2: {time2}; time22: {time22}"); raise
+			if time1 >= time2 and time1 <= time22:
+				shutil.copy(name2, dst_dataset_path)
+				flag = True
+				break
+
+		if not flag:
+			print(f"missing video file: {name1}")
+			count += 1
+
+	print(f"found video file count: {len(time_names)-count}; missing video file count: {count}")
+
 
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
 
-	parse_csv19(args.src_csv_file1, args.src_csv_file2, args.dst_csv_file)
+	parse_csv14(args.src_csv_file1)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

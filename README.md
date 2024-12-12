@@ -125,6 +125,7 @@
 			conda install -c conda-forge openvino=2024.0.0 # keep the same version as libopenvino
 			pip install nncf==2.8.0 # openvino INT8 need
 			pip install openpyxl # write excel file
+			pip install moviepy # parse video file
 
 			git clone https://github.com/fengbingchun/NN_Test
 			cd NN_Test/demo/Python
