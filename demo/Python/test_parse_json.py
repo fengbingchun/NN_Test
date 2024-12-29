@@ -8,9 +8,10 @@ import json
 def parse_args():
 	parser = argparse.ArgumentParser(description="parse json file")
 	parser.add_argument("--src_path", required=True, type=str, help="source json path")
-	parser.add_argument("--dst_path", required=True, type=str, help="the path of the destination json")
+	parser.add_argument("--dst_path", type=str, help="the path of the destination json")
 	parser.add_argument("--suffix", type=str, help="file name suffix")
 	parser.add_argument("--rename", type=bool, default=False, help="whether to rename the file")
+	parser.add_argument("--category_names", type=str, help="category names, separated by commas")
 
 	args = parser.parse_args()
 	return args
@@ -51,10 +52,40 @@ def parse_json1(src_path, dst_path, img_suffix, rename):
 
 	print(f"number fo files copied: {count}")
 
+def parse_json2(src_path, category_names):
+	category_list = category_names.split(",")
+	# print(f"category list: {category_list}")
+	category_dict = {item: 0 for item in category_list}
+	# print(f"category dict: {category_dict}")
+
+	for file in Path(src_path).rglob("*.json"):
+		with open(str(file), "r", encoding="utf-8") as f:
+			data = json.load(f)
+			# print(data["shapes"][0]); raise
+			for value in data["shapes"]:
+				# print(value["label"])
+				category_dict[value["label"]] += 1
+
+	for category in category_list:
+		print(f"{category}: {category_dict[category]}")
+
+def parse_json3(src_path):
+	names = []
+	for file in Path(src_path).rglob("*.json"):
+		with open(str(file), "r", encoding="utf-8") as f:
+			data = json.load(f)
+			# if "shapes" not in data:
+			if len(data["shapes"]) == 0:
+				names.append(file)
+
+	print(f"names: {names}; length: {len(names)}")
+	for name in names:
+		name.unlink() # delete file
+
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
 
-	parse_json1(args.src_path, args.dst_path, args.suffix, args.rename)
+	parse_json3(args.src_path)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

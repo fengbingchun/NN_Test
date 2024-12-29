@@ -4,12 +4,17 @@ from pathlib import Path
 import argparse
 import colorama
 import shutil
+import matplotlib.pyplot as plt
+import numpy as np
+import ast
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="image related operations")
 	parser.add_argument("--src_path", required=True, type=str, help="images src path")
 	parser.add_argument("--dst_path", type=str, help="images dst/src path")
 	parser.add_argument("--interval", type=int, help="specify the interval between images to be taken")
+	parser.add_argument("--suffix", type=str, help="image suffix")
+	parser.add_argument("--rect", type=str, help="rect pos: x,y,width,height")
 
 	args = parser.parse_args()
 	return args
@@ -68,7 +73,7 @@ def _get_images(dir):
 
 def copy_images(src_path, dst_path, interval):
 	images = _get_images(src_path)
-	# print(f"len: {len(images)}; name: {images[0]}")
+	# print(f"len: {len(images)}; name: {images[0]}"); raise
 	result = [images[i] for i in range(0, len(images), interval)]
 
 	if os.path.exists(dst_path) and os.path.isdir(dst_path):
@@ -110,6 +115,109 @@ def rename_images_prefix_dirname(src_path, dst_path):
 
 	print(f"copy images count: {len(images)}")
 
+def multidirs_copy_images(src_path, dst_path, interval):
+	dirs = [str(d) for d in Path(src_path).glob("*") if d.is_dir() ]
+	print(f" dirs count: {len(dirs)}; dir: {dirs[0]}")
+
+	for dir in dirs:
+		print(f"current dir: {dir}")
+		copy_images(dir, dst_path, interval)
+
+def _diff_pixels(pixel_values):
+	diff = []
+	for idx in range(1, len(pixel_values)):
+		ret = pixel_values[idx] - pixel_values[idx-1]
+		diff.append(ret)
+
+	return diff
+
+def _draw_graph(pixel_values_gray, pixel_values_blue, pixel_values_green, pixel_values_red, name, dst_path):
+	length_match = len(pixel_values_gray) == len(pixel_values_blue) == len(pixel_values_green) == len(pixel_values_red)
+	if not length_match:
+		raise ValueError(colorama.Fore.RED + f"they must be the same length: {len(pixel_values_gray)}, {len(pixel_values_blue)}, {len(pixel_values_green)}, {len(pixel_values_red)}")
+	# print(f"length: {len(pixel_values_gray)}"); raise
+
+	x_values = list(range(1, len(pixel_values_gray))) # len(pixel_values_gray) + 1
+
+	diff_gray = _diff_pixels(pixel_values_gray)
+	diff_blue = _diff_pixels(pixel_values_blue)
+	diff_green = _diff_pixels(pixel_values_green)
+	diff_red = _diff_pixels(pixel_values_red)
+
+	fig = plt.figure()
+	ax = fig.add_subplot()
+
+	ax.plot(x_values, diff_gray, label="gray", color="black") # pixel_values_gray
+	ax.plot(x_values, diff_blue, label="blue", color="blue")
+	ax.plot(x_values, diff_green, label="green", color="green")
+	ax.plot(x_values, diff_red, label="red", color="red")
+	ax.legend()
+
+	ax.set_title("Comparison of pixel values in each channel")
+	ax.set_xlabel("X-axis")
+	ax.set_ylabel("Y-axis")
+	plt.savefig(dst_path+"/"+name)
+	# plt.show()
+	plt.close(fig)
+
+def _pixels_average(image, rect):
+	roi = image[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
+	mean = int(np.mean(roi))
+	# print(f"mean: {mean}"); raise
+
+	return mean
+
+def images_split(src_path, suffix, rect, figure_name, dst_path):
+	# if os.path.exists(dst_path) and os.path.isdir(dst_path):
+	# 	print(colorama.Fore.YELLOW + f"the specified directory already exists: {dst_path}")
+	os.makedirs(dst_path, exist_ok=True)
+
+	# dir_blue = dst_path + "/blue"
+	# dir_green = dst_path + "/green"
+	# dir_red = dst_path + "/red"
+
+	# os.makedirs(dir_blue, exist_ok=True)
+	# os.makedirs(dir_green, exist_ok=True)
+	# os.makedirs(dir_red, exist_ok=True)
+
+	pixel_values_gray = []
+	pixel_values_blue = []
+	pixel_values_green = []
+	pixel_values_red = []
+
+	rect = ast.literal_eval(rect)
+
+	for file in Path(src_path).rglob("*."+suffix):
+		name = file.name
+		img = cv2.imread(str(file))
+		if img is None:
+			raise FileNotFoundError(colorama.Fore.RED + f"image not found: {file}")
+
+		blue, green, red = cv2.split(img)
+		# cv2.imwrite(dir_blue+"/"+name, blue)
+		# cv2.imwrite(dir_green+"/"+name, green)
+		# cv2.imwrite(dir_red+"/"+name, red)
+
+		gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+		pixel_values_gray.append(_pixels_average(gray, rect))
+		pixel_values_blue.append(_pixels_average(blue, rect))
+		pixel_values_green.append(_pixels_average(green, rect))
+		pixel_values_red.append(_pixels_average(red, rect))
+
+	_draw_graph(pixel_values_gray, pixel_values_blue, pixel_values_green, pixel_values_red, figure_name, dst_path)
+
+def dir_images_split(src_path, suffix, rect, dst_path):
+	root_path = Path(src_path)
+	for dir in root_path.rglob("*"):
+		if dir.is_dir() and dir != root_path:
+			print(f"dir name: {dir}")
+			name = str(dir.name)
+			name += ".png"
+			# print(f"name: {name}"); raise
+			images_split(str(dir), suffix, rect, name, dst_path)
+
+
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
@@ -118,6 +226,6 @@ if __name__ == "__main__":
 	if not directory.is_dir():
 		raise FileNotFoundError(colorama.Fore.RED + f"the specified directory does not exist: {args.src_path}")
 
-	rename_images_prefix_dirname(args.src_path, args.dst_path)
+	dir_images_split(args.src_path, args.suffix, args.rect, args.dst_path)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

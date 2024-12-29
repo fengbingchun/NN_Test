@@ -18,6 +18,7 @@ def parse_args():
 	parser.add_argument("--prefix", type=str, help="file name prefix")
 	parser.add_argument("--line_counts", type=int, help="specify how many lines the txt file has")
 	parser.add_argument("--column_counts", type=int, help="specify how many columns the txt file has")
+	parser.add_argument("--category_names", type=str, help="category names, separated by commas")
 
 	args = parser.parse_args()
 	return args
@@ -240,11 +241,26 @@ def parse_txt4(src_path, src_csv_name, line_counts, column_counts, dst_path, dst
 
 	_cal_proportion(src_csv_name, temp_dict, dst_csv_name)
 
+def parse_txt5(src_path, category_names):
+	category_list = category_names.split(",")
+	# print(f"category list: {category_list}")
+	category_dict = {item: 0 for item in category_list}
+	# print(f"category dict: {category_dict}")
+
+	for file in Path(src_path).rglob("*.txt"):
+		with open(file, "r") as f:
+			for line in f:
+				line = line.strip()
+				# print(f"value: {line.split()[0]}"); raise
+				category_dict[line.split()[0]] += 1
+
+	for category in category_list:
+		print(f"{category}: {category_dict[category]}")
 
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
 
-	parse_txt4(args.src_path, args.src_csv_name, args.line_counts, args.column_counts, args.dst_path, args.dst_csv_name)
+	parse_txt5(args.src_path, args.category_names)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

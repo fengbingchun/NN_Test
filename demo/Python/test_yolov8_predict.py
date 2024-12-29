@@ -185,6 +185,9 @@ def save_image(predict_result, dst_image_name, image, src_image_name):
 		else:
 			cv2.imwrite(dir+"/obscured/"+name, image)
 
+def rect_color(index):
+	colors = [(255,0,0), (255,255,0), (128,255,128), (0,255,0)]
+	return colors[index]
 
 def draw_rect(predict_result, src_image_name, dst_image_name, buckle, count):
 	# print_boxes_info(predict_result)
@@ -194,14 +197,28 @@ def draw_rect(predict_result, src_image_name, dst_image_name, buckle, count):
 
 	for i in range(len(predict_result.boxes.data)):
 		data = predict_result.boxes.data[i].tolist()
-		cv2.rectangle(image, (int(data[0]+0.5), int(data[1]+0.5)), (int(data[2]+0.5), int(data[3]+0.5)), (255,0,0), 1)
-		cv2.putText(image, f"{int(data[-1])},{data[-2]:.2f}", (int(data[0]+0.5), int(data[3]+0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1, cv2.LINE_AA)
-	# cv2.imwrite(dst_image_name, image)
-	save_image(predict_result, dst_image_name, image, src_image_name)
+		cv2.rectangle(image, (int(data[0]+0.5), int(data[1]+0.5)), (int(data[2]+0.5), int(data[3]+0.5)), rect_color(int(data[-1])), 1)
+		cv2.putText(image, f"{int(data[-1])},{data[-2]:.2f}", (int(data[0]+0.5), int(data[3]+0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, rect_color(int(data[-1])), 1, cv2.LINE_AA)
+	cv2.imwrite(dst_image_name, image)
+	# save_image(predict_result, dst_image_name, image, src_image_name)
 
 	# draw_cross_sectional(predict_result, dst_image_name, dst_image_name, buckle, count)
 
-def predict(model, task, dir_images, video_file, dir_result):
+def parse_result(result): # result = results[0]
+	boxes = []
+	for i in range(len(result.boxes.data)):
+		data = result.boxes.data[i].tolist()
+		box = {}
+		# box["valid"] = False
+		box["label"] = int(data[-1])
+		box["pos"] = [int(data[0]), int(data[1]), int(data[2]), int(data[3])] # left, top, right, bottom
+		box["confidence"] = float(data[-2])
+		boxes.append(box)
+
+	return boxes
+
+
+def predict(task, model, dir_images, video_file, dir_result):
 	model = YOLO(model) # load an model, support format: *.pt, *.onnx, *.torchscript, *.engine, openvino_model
 	# model.info() # display model information # only *.pt format support
 
@@ -228,6 +245,7 @@ def predict(model, task, dir_images, video_file, dir_result):
 			if task == "detect" or task =="segment":
 				for result in results:
 					# result.save(dir_result+"/"+image)
+					# boxes = parse_result(result); print(boxes); raise
 					draw_rect(result, dir_images+"/"+image, dir_result+"/"+image, buckle, count)
 			else:
 				print(f"class names:{results[0].names}: top5: {results[0].probs.top5}; conf:{results[0].probs.top5conf}")
@@ -241,6 +259,6 @@ if __name__ == "__main__":
 
 	print("Runging on GPU") if torch.cuda.is_available() else print("Runting on CPU")
 
-	predict(args.model, args.task, args.dir_images, args.video_file, args.dir_result)
+	predict(args.task, args.model, args.dir_images, args.video_file, args.dir_result)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")
