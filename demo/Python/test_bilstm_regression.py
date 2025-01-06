@@ -22,7 +22,7 @@ def parse_args():
 	parser.add_argument("--batch_size", type=int, default=64, help="batch size during training")
 	parser.add_argument("--hidden_size", type=int, default=128, help="hidden state size")
 	parser.add_argument("--num_layers", type=int, default=2, help="number of recurrent layers")
-	parser.add_argument("--bidirectional", type=bool, default=True, help="specify whether to use LSTM or BiLSTM")
+	parser.add_argument("--bidirectional", action="store_true", help="specify whether to use LSTM or BiLSTM")
 	parser.add_argument("--drop_rate", type=float, default=0.2, help="dropout rate after first fc")
 	parser.add_argument("--first_fc_features_length", type=int, default=512, help="the features length of the first layer fc")
 	parser.add_argument("--loss_delta", type=float, default=0.2, help="huber loss delta value")

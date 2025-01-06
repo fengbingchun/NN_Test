@@ -23,7 +23,7 @@ def parse_args():
 	parser.add_argument("--dropout", type=float, default=0.0, help="dropout rate for regularization in classification tasks")
 	parser.add_argument("--pretrained_model", type=str, default="", help="pretrained model loaded during training")
 	parser.add_argument("--gpu", type=str, default="0", help="set which graphics card to use. it can also support multiple graphics cards at the same time, for example 0,1")
-	parser.add_argument("--augment", type=bool, default=False, help="augment inference")
+	parser.add_argument("--augment", action="store_true", help="augment inference")
 
 	args = parser.parse_args()
 	return args
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 	args = parse_args()
 	set_gpu(args.gpu)
 
-	print("Runging on GPU") if torch.cuda.is_available() else print("Runting on CPU")
+	print("Running on GPU") if torch.cuda.is_available() else print("Running on CPU")
 
 	train(args.task, args.yaml, args.epochs, args.imgsz, args.patience, args.batch, args.optimizer, args.lr0, args.lrf, args.dropout, args.pretrained_model, args.augment)
 

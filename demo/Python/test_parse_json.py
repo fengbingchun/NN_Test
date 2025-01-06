@@ -10,7 +10,7 @@ def parse_args():
 	parser.add_argument("--src_path", required=True, type=str, help="source json path")
 	parser.add_argument("--dst_path", type=str, help="the path of the destination json")
 	parser.add_argument("--suffix", type=str, help="file name suffix")
-	parser.add_argument("--rename", type=bool, default=False, help="whether to rename the file")
+	parser.add_argument("--rename", action="store_true", help="whether to rename the file")
 	parser.add_argument("--category_names", type=str, help="category names, separated by commas")
 
 	args = parser.parse_args()

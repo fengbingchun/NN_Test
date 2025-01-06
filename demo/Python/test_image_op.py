@@ -7,6 +7,7 @@ import shutil
 import matplotlib.pyplot as plt
 import numpy as np
 import ast
+from datetime import datetime, timedelta
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="image related operations")
@@ -129,28 +130,64 @@ def _diff_pixels(pixel_values):
 		ret = pixel_values[idx] - pixel_values[idx-1]
 		diff.append(ret)
 
+	print(f"red values: {pixel_values}\ndiff: {diff}")
 	return diff
 
-def _draw_graph(pixel_values_gray, pixel_values_blue, pixel_values_green, pixel_values_red, name, dst_path):
+def _get_key_points(image_names, pixel_values_red, diff_red):
+	key_points = []
+	points_index = []
+	for idx in range(0, len(diff_red)):
+		if diff_red[idx] > 20:
+			key_points.append(image_names[idx+1])
+			points_index.append(idx+1)
+			# start_point = image_names[idx+1][:-4]
+			# print(f"start point: {start_point}"); raise
+	if len(key_points) == 0 or len(key_points) == 1:
+		return
+
+	results = []
+	for idx in range(0, len(key_points)):
+		if points_index[idx] + 3 < len(pixel_values_red):
+			if pixel_values_red[points_index[idx]+1] > 200 and pixel_values_red[points_index[idx]+2] > 200 and pixel_values_red[points_index[idx]+3] > 200: # pixel_values_red[points_index[idx]] > 200 and and pixel_values_red[points_index[idx]+4] > 200:
+				results.append(key_points[idx])
+
+	if len(results) == 0 or len(results) == 1:
+		return
+
+	results2 = []
+	results2.append(results[0])
+
+	for idx in range(1, len(results)):
+		start_time = datetime.strptime(results2[-1][:-4], "%Y%m%d%H%M%S")
+		end_time = datetime.strptime(results[idx][:-4], "%Y%m%d%H%M%S")
+
+		if end_time - start_time > timedelta(seconds=35):
+			results2.append(results[idx])
+
+	print(f"result points: {len(results2)}, {results2}")
+
+def _draw_graph(image_names, pixel_values_gray, pixel_values_blue, pixel_values_green, pixel_values_red, name, dst_path):
 	length_match = len(pixel_values_gray) == len(pixel_values_blue) == len(pixel_values_green) == len(pixel_values_red)
-	if not length_match:
-		raise ValueError(colorama.Fore.RED + f"they must be the same length: {len(pixel_values_gray)}, {len(pixel_values_blue)}, {len(pixel_values_green)}, {len(pixel_values_red)}")
+	# if not length_match:
+	# 	raise ValueError(colorama.Fore.RED + f"they must be the same length: {len(pixel_values_gray)}, {len(pixel_values_blue)}, {len(pixel_values_green)}, {len(pixel_values_red)}")
 	# print(f"length: {len(pixel_values_gray)}"); raise
 
-	x_values = list(range(1, len(pixel_values_gray))) # len(pixel_values_gray) + 1
+	x_values = list(range(1, len(pixel_values_red))) # len(pixel_values_gray) + 1
 
-	diff_gray = _diff_pixels(pixel_values_gray)
-	diff_blue = _diff_pixels(pixel_values_blue)
-	diff_green = _diff_pixels(pixel_values_green)
+	# diff_gray = _diff_pixels(pixel_values_gray)
+	# diff_blue = _diff_pixels(pixel_values_blue)
+	# diff_green = _diff_pixels(pixel_values_green)
 	diff_red = _diff_pixels(pixel_values_red)
+
+	_get_key_points(image_names, pixel_values_red, diff_red)
 
 	fig = plt.figure()
 	ax = fig.add_subplot()
 
-	ax.plot(x_values, diff_gray, label="gray", color="black") # pixel_values_gray
-	ax.plot(x_values, diff_blue, label="blue", color="blue")
-	ax.plot(x_values, diff_green, label="green", color="green")
-	ax.plot(x_values, diff_red, label="red", color="red")
+	# ax.plot(x_values, diff_gray, label="gray", color="black") # pixel_values_gray
+	# ax.plot(x_values, diff_blue, label="blue", color="blue")
+	# ax.plot(x_values, diff_green, label="green", color="green")
+	ax.plot(x_values, diff_red, "-o", label="red", color="red")
 	ax.legend()
 
 	ax.set_title("Comparison of pixel values in each channel")
@@ -186,6 +223,7 @@ def images_split(src_path, suffix, rect, figure_name, dst_path):
 	pixel_values_red = []
 
 	rect = ast.literal_eval(rect)
+	image_names = []
 
 	for file in Path(src_path).rglob("*."+suffix):
 		name = file.name
@@ -198,17 +236,20 @@ def images_split(src_path, suffix, rect, figure_name, dst_path):
 		# cv2.imwrite(dir_green+"/"+name, green)
 		# cv2.imwrite(dir_red+"/"+name, red)
 
-		gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+		# gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-		pixel_values_gray.append(_pixels_average(gray, rect))
-		pixel_values_blue.append(_pixels_average(blue, rect))
-		pixel_values_green.append(_pixels_average(green, rect))
+		# pixel_values_gray.append(_pixels_average(gray, rect))
+		# pixel_values_blue.append(_pixels_average(blue, rect))
+		# pixel_values_green.append(_pixels_average(green, rect))
 		pixel_values_red.append(_pixels_average(red, rect))
 
-	_draw_graph(pixel_values_gray, pixel_values_blue, pixel_values_green, pixel_values_red, figure_name, dst_path)
+		image_names.append(str(name))
+
+	_draw_graph(image_names, pixel_values_gray, pixel_values_blue, pixel_values_green, pixel_values_red, figure_name, dst_path)
 
 def dir_images_split(src_path, suffix, rect, dst_path):
 	root_path = Path(src_path)
+	count = 0
 	for dir in root_path.rglob("*"):
 		if dir.is_dir() and dir != root_path:
 			print(f"dir name: {dir}")
@@ -216,6 +257,12 @@ def dir_images_split(src_path, suffix, rect, dst_path):
 			name += ".png"
 			# print(f"name: {name}"); raise
 			images_split(str(dir), suffix, rect, name, dst_path)
+			count += 1
+
+	if count == 0:
+		name = str(Path(src_path).name)
+		name += ".png"
+		images_split(src_path, suffix, rect, name, dst_path)
 
 
 if __name__ == "__main__":
@@ -226,6 +273,6 @@ if __name__ == "__main__":
 	if not directory.is_dir():
 		raise FileNotFoundError(colorama.Fore.RED + f"the specified directory does not exist: {args.src_path}")
 
-	dir_images_split(args.src_path, args.suffix, args.rect, args.dst_path)
+	multidirs_copy_images(args.src_path, args.dst_path, args.interval)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")
