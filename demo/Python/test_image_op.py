@@ -238,6 +238,11 @@ def images_split(src_path, suffix, rect, figure_name, dst_path):
 
 		# gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+		if rect[0] == 0 and rect[1] == 0 and rect[2] == 0 and rect[3] == 0:
+			rect = list(rect)
+			rect[2] = img.shape[1]
+			rect[3] = img.shape[0]
+
 		# pixel_values_gray.append(_pixels_average(gray, rect))
 		# pixel_values_blue.append(_pixels_average(blue, rect))
 		# pixel_values_green.append(_pixels_average(green, rect))
@@ -273,6 +278,6 @@ if __name__ == "__main__":
 	if not directory.is_dir():
 		raise FileNotFoundError(colorama.Fore.RED + f"the specified directory does not exist: {args.src_path}")
 
-	multidirs_copy_images(args.src_path, args.dst_path, args.interval)
+	dir_images_split(args.src_path, args.suffix, args.rect, args.dst_path)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")

@@ -395,7 +395,7 @@ class DenseNet(nn.Module):
 		return out
 
 
-def draw_graph(train_losses, train_accuracies, val_losses, val_accuracies):
+def draw_graph(train_losses, train_accuracies, val_losses, val_accuracies, epochs, batch_size, lr, drop_rate2, loss_delta, last_fc_features_length):
 	plt.subplot(1, 2, 1) # loss
 	plt.title("Loss curve")
 	plt.xlabel("Epoch Number")
@@ -414,7 +414,9 @@ def draw_graph(train_losses, train_accuracies, val_losses, val_accuracies):
 
 	now = datetime.now()
 	formatted_now = now.strftime("%Y-%m-%d-%H-%M-%S")
-	plt.savefig("regression_"+formatted_now+".png")
+	name = "_epochs" + str(epochs) + "_batch" + str(batch_size) + "_lr" + str(lr) + "_drop" + str(drop_rate2) + "_loss" + str(loss_delta) + "_fc" + str(last_fc_features_length)
+
+	plt.savefig(formatted_now+name+".png")
 	# plt.show()
 
 class CustomImageDataset(Dataset):
@@ -596,7 +598,7 @@ def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, ba
 		# 	break
 
 	print(f"train: loss:{minimum_loss_train:.6f}, epoch:{best_epoch_loss_train}, acc:{highest_accuracy_train:.6f}, epoch:{best_epoch_accuracy_train};  val: loss:{minimum_loss_val:.6f}, epoch:{best_epoch_loss_val}, acc:{highest_accuracy_val:.6f}, epoch:{best_epoch_accuracy_val}")
-	# draw_graph(train_losses, train_accuracies, val_losses, val_accuracies)
+	draw_graph(train_losses, train_accuracies, val_losses, val_accuracies, epochs, batch_size, lr, drop_rate2, loss_delta, last_fc_features_length)
 
 
 def get_images_list(images_path):

@@ -278,7 +278,7 @@ class SaveResult:
 
 		maxh, maxw = info[1].shape[:2]
 		rect = [info[3], info[4], info[5], info[6]]
-		h = int((rect[2] - rect[0]) / 8 + 0.5)
+		h = int((rect[2] - rect[0]) / 8)# + 0.5)
 		w = h * 8
 		xcenter = rect[0] + int((rect[2] - rect[0]) / 2 + 0.5)
 

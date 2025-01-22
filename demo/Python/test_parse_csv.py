@@ -1043,11 +1043,62 @@ def parse_csv20(src_csv_file, src_dataset_path, suffix, dst_dataset_path):
 
 	print(f"found video file count: {len(time_names)-count}; missing video file count: {count}")
 
+def parse_csv21(src_dataset_path, src_csv_file, suffix, dst_csv_file, dst_dataset_path):
+	dates1 = []
+	with open(src_csv_file, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			dates1.append(row)
+	print(f"date1 length: {len(dates1)}, row0: {dates1[0]}")
+
+	dates2 = []
+	for name in Path(src_dataset_path).rglob("*."+suffix):
+		dates2.append(str(name.name))
+	print(f"date2 length: {len(dates2)}, row0: {dates2[0]}")
+
+	os.makedirs(dst_dataset_path, exist_ok=True)
+	minseconds = 2*60*60-5*60 # 5
+	maxseconds = 2*60*60+5*60
+	count = 0
+	results = []
+
+	for date1 in dates1:
+		time1 = datetime.strptime(date1[0], "%Y/%m/%d %H:%M")
+
+		candidate = []
+		for date2 in dates2:
+			time2 = date2[:-(len(suffix)+1)]
+			time2 = f"{time2[:4]}-{time2[4:6]}-{time2[6:8]} {time2[8:10]}:{time2[10:12]}:{time2[12:]}"
+			# print(f"time2: {time2}"); raise
+			time2 = datetime.strptime(time2, "%Y-%m-%d %H:%M:%S")
+			diff = (time1 - time2).total_seconds()
+			if diff <= 0:
+				break
+			if diff > minseconds and diff < maxseconds:
+				candidate.append([date2, time2])
+
+		if len(candidate) == 0:
+			continue
+		count += 1
+		print(f"len candidate: {len(candidate)}, count: {count}")
+
+		name = _get_suitable_name(time1, candidate)
+		results.append([date1[0], date1[1], name])
+
+	print(f"results length: {len(results)}; row0: {results[0]}")
+	with open(dst_csv_file, mode="w", newline="", encoding="utf-8") as file:
+		writer = csv.writer(file)
+
+		for row in results:
+			writer.writerow(row)
+
+			shutil.copy(src_dataset_path+"/"+row[2], dst_dataset_path)
+
 
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
 
-	parse_csv14(args.src_csv_file1)
+	parse_csv21(args.src_dataset_path1, args.src_csv_file1, args.suffix, args.dst_csv_file, args.dst_dataset_path1)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")
