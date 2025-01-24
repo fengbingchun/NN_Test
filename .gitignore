@@ -41,3 +41,5 @@ demo/Python/*.7z
 demo/Python/utils/__pycache__/
 *.avi
 demo/Python/logs
+demo/Python/run.sh
+note.md

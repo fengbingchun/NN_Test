@@ -68,9 +68,12 @@ if __name__ == "__main__":
 	# python test_yolov8_train.py --yaml datasets/melon_new_detect/melon_new_detect.yaml --epochs 1000 --task detect --imgsz 640
 	colorama.init(autoreset=True)
 	args = parse_args()
-	set_gpu(args.gpu)
 
-	print("Running on GPU") if torch.cuda.is_available() else print("Running on CPU")
+	if torch.cuda.is_available():
+		print("Running on GPU")
+		set_gpu(args.gpu)
+	else:
+		print("Running on CPU")
 
 	train(args.task, args.yaml, args.epochs, args.imgsz, args.patience, args.batch, args.optimizer, args.lr0, args.lrf, args.dropout, args.pretrained_model, args.augment)
 

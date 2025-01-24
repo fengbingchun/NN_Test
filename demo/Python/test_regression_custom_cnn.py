@@ -513,91 +513,94 @@ def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, ba
 	best_epoch_accuracy_val = 0
 	best_epoch_loss_val = 0
 
-	for epoch in range(epochs):
-		epoch_start = time.time()
+	with open(model_name+".txt", mode="w", newline="", encoding="utf-8") as file:
+		for epoch in range(epochs):
+			epoch_start = time.time()
 
-		train_loss = 0.0 # loss
-		val_loss = 0.0
-		labels_src = []
-		labels_dst = []
+			train_loss = 0.0 # loss
+			val_loss = 0.0
+			labels_src = []
+			labels_dst = []
 
-		model.train() # set to training mode
-		for _, (inputs, labels) in enumerate(train_loader):
-			inputs = inputs.to(device)
-			labels = labels.to(device, dtype=torch.float).view(-1,1)
-			# print(f"type: {inputs.type()}; {labels.type()}")
-			flat = [item[0] for item in labels.tolist()]
-			labels_src = labels_src + flat
-
-			outputs = model(inputs) # forward pass
-			flat = [item[0] for item in outputs.tolist()]
-			labels_dst = labels_dst + flat
-			# print(f"shape: {outputs.shape}; {labels.shape}")
-			loss = criterion(outputs, labels) # compute loss
-
-			optimizer.zero_grad() # clean existing gradients
-			loss.backward() # backpropagate the gradients
-			optimizer.step() # update the parameters
-
-			train_loss += loss.item() * inputs.size(0) # compute the total loss
-
-		avg_train_loss = train_loss / train_dataset_num # average training loss
-		train_losses.append(avg_train_loss)
-		avg_train_acc = calculate_hit_rate(labels_src, labels_dst, train_dataset_num, threshold)
-		train_accuracies.append(avg_train_acc)
-
-		labels_src = []
-		labels_dst = []
-
-		model.eval() # set to evaluation mode
-		with torch.no_grad():
-			for _, (inputs, labels) in enumerate(val_loader):
+			model.train() # set to training mode
+			for _, (inputs, labels) in enumerate(train_loader):
 				inputs = inputs.to(device)
 				labels = labels.to(device, dtype=torch.float).view(-1,1)
+				# print(f"type: {inputs.type()}; {labels.type()}")
 				flat = [item[0] for item in labels.tolist()]
 				labels_src = labels_src + flat
 
 				outputs = model(inputs) # forward pass
 				flat = [item[0] for item in outputs.tolist()]
 				labels_dst = labels_dst + flat
+				# print(f"shape: {outputs.shape}; {labels.shape}")
 				loss = criterion(outputs, labels) # compute loss
 
-				val_loss += loss.item() * inputs.size(0) # compute the total loss
+				optimizer.zero_grad() # clean existing gradients
+				loss.backward() # backpropagate the gradients
+				optimizer.step() # update the parameters
 
-		avg_val_loss = val_loss / val_dataset_num # average validation loss
-		val_losses.append(avg_val_loss)
-		avg_val_acc = calculate_hit_rate(labels_src, labels_dst, val_dataset_num, threshold) # average validation accuracy
-		val_accuracies.append(avg_val_acc)
+				train_loss += loss.item() * inputs.size(0) # compute the total loss
 
-		epoch_end = time.time()
-		print(f"epoch:{epoch+1}/{epochs}; train loss:{avg_train_loss:.6f}, accuracy:{avg_train_acc:.6f}; validation loss:{avg_val_loss:.6f}, accuracy:{avg_val_acc:.6f}; time:{epoch_end-epoch_start:.2f}s")
+			avg_train_loss = train_loss / train_dataset_num # average training loss
+			train_losses.append(avg_train_loss)
+			avg_train_acc = calculate_hit_rate(labels_src, labels_dst, train_dataset_num, threshold)
+			train_accuracies.append(avg_train_acc)
 
-		if highest_accuracy_val < avg_val_acc: #and minimum_loss_val > avg_val_loss:
-			torch.save(model.state_dict(), model_name)
+			labels_src = []
+			labels_dst = []
 
-		if highest_accuracy_val < avg_val_acc:
-			highest_accuracy_val = avg_val_acc
-			best_epoch_accuracy_val = epoch + 1
-		if minimum_loss_val > avg_val_loss:
-			minimum_loss_val = avg_val_loss
-			best_epoch_loss_val = epoch + 1
-		if highest_accuracy_train < avg_train_acc:
-			highest_accuracy_train = avg_train_acc
-			best_epoch_accuracy_train = epoch + 1
-		if minimum_loss_train > avg_train_loss:
-			minimum_loss_train = avg_train_loss
-			best_epoch_loss_train = epoch + 1
+			model.eval() # set to evaluation mode
+			with torch.no_grad():
+				for _, (inputs, labels) in enumerate(val_loader):
+					inputs = inputs.to(device)
+					labels = labels.to(device, dtype=torch.float).view(-1,1)
+					flat = [item[0] for item in labels.tolist()]
+					labels_src = labels_src + flat
 
-		if highest_accuracy_train > 0.99 and highest_accuracy_val < 0.5:
-			print(colorama.Fore.YELLOW + "overfitting")
-			break
+					outputs = model(inputs) # forward pass
+					flat = [item[0] for item in outputs.tolist()]
+					labels_dst = labels_dst + flat
+					loss = criterion(outputs, labels) # compute loss
 
-		# if avg_val_loss < 0.00001 and avg_val_acc > 0.99999:
-		# 	print(colorama.Fore.YELLOW + "stop training early")
-		# 	torch.save(model.state_dict(), model_name)
-		# 	break
+					val_loss += loss.item() * inputs.size(0) # compute the total loss
 
-	print(f"train: loss:{minimum_loss_train:.6f}, epoch:{best_epoch_loss_train}, acc:{highest_accuracy_train:.6f}, epoch:{best_epoch_accuracy_train};  val: loss:{minimum_loss_val:.6f}, epoch:{best_epoch_loss_val}, acc:{highest_accuracy_val:.6f}, epoch:{best_epoch_accuracy_val}")
+			avg_val_loss = val_loss / val_dataset_num # average validation loss
+			val_losses.append(avg_val_loss)
+			avg_val_acc = calculate_hit_rate(labels_src, labels_dst, val_dataset_num, threshold) # average validation accuracy
+			val_accuracies.append(avg_val_acc)
+
+			epoch_end = time.time()
+			print(f"epoch:{epoch+1}/{epochs}; train loss:{avg_train_loss:.6f}, accuracy:{avg_train_acc:.6f}; validation loss:{avg_val_loss:.6f}, accuracy:{avg_val_acc:.6f}; time:{epoch_end-epoch_start:.2f}s")
+			file.write(f"epoch:{epoch+1}/{epochs}; train loss:{avg_train_loss:.6f}, accuracy:{avg_train_acc:.6f}; validation loss:{avg_val_loss:.6f}, accuracy:{avg_val_acc:.6f}; time:{epoch_end-epoch_start:.2f}s\n")
+
+			if highest_accuracy_val < avg_val_acc: #and minimum_loss_val > avg_val_loss:
+				torch.save(model.state_dict(), model_name)
+
+			if highest_accuracy_val < avg_val_acc:
+				highest_accuracy_val = avg_val_acc
+				best_epoch_accuracy_val = epoch + 1
+			if minimum_loss_val > avg_val_loss:
+				minimum_loss_val = avg_val_loss
+				best_epoch_loss_val = epoch + 1
+			if highest_accuracy_train < avg_train_acc:
+				highest_accuracy_train = avg_train_acc
+				best_epoch_accuracy_train = epoch + 1
+			if minimum_loss_train > avg_train_loss:
+				minimum_loss_train = avg_train_loss
+				best_epoch_loss_train = epoch + 1
+
+			if highest_accuracy_train > 0.99 and highest_accuracy_val < 0.5:
+				print(colorama.Fore.YELLOW + "overfitting")
+				break
+
+			# if avg_val_loss < 0.00001 and avg_val_acc > 0.99999:
+			# 	print(colorama.Fore.YELLOW + "stop training early")
+			# 	torch.save(model.state_dict(), model_name)
+			# 	break
+
+		print(f"train: loss:{minimum_loss_train:.6f}, epoch:{best_epoch_loss_train}, acc:{highest_accuracy_train:.6f}, epoch:{best_epoch_accuracy_train};  val: loss:{minimum_loss_val:.6f}, epoch:{best_epoch_loss_val}, acc:{highest_accuracy_val:.6f}, epoch:{best_epoch_accuracy_val}")
+		file.write(f"train: loss:{minimum_loss_train:.6f}, epoch:{best_epoch_loss_train}, acc:{highest_accuracy_train:.6f}, epoch:{best_epoch_accuracy_train};  val: loss:{minimum_loss_val:.6f}, epoch:{best_epoch_loss_val}, acc:{highest_accuracy_val:.6f}, epoch:{best_epoch_accuracy_val}\n")
 	draw_graph(train_losses, train_accuracies, val_losses, val_accuracies, epochs, batch_size, lr, drop_rate2, loss_delta, last_fc_features_length)
 
 
@@ -679,7 +682,12 @@ def set_gpu(id):
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
-	set_gpu(args.gpu)
+
+	if torch.cuda.is_available():
+		print("Running on GPU")
+		set_gpu(args.gpu)
+	else:
+		print("Running on CPU")
 
 	if args.task == "split":
 		# python test_regression_custom_cnn.py --task split --src_dataset_path ../../data/database/regression --dst_dataset_path datasets/regression --csv_file ../../data/database/regression.csv --resize (64,512) --ratios (0.9,0.05,0.05)
