@@ -512,8 +512,12 @@ def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, ba
 	best_epoch_loss_train = 0
 	best_epoch_accuracy_val = 0
 	best_epoch_loss_val = 0
+	patience = 2000
 
-	with open(model_name+".txt", mode="w", newline="", encoding="utf-8") as file:
+	now = datetime.now()
+	formatted_now = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+	with open(formatted_now+"_"+model_name+".txt", mode="w", newline="", encoding="utf-8") as file:
 		for epoch in range(epochs):
 			epoch_start = time.time()
 
@@ -574,30 +578,31 @@ def train(dataset_path, epochs, mean, std, model_name, net, pretrained_model, ba
 			print(f"epoch:{epoch+1}/{epochs}; train loss:{avg_train_loss:.6f}, accuracy:{avg_train_acc:.6f}; validation loss:{avg_val_loss:.6f}, accuracy:{avg_val_acc:.6f}; time:{epoch_end-epoch_start:.2f}s")
 			file.write(f"epoch:{epoch+1}/{epochs}; train loss:{avg_train_loss:.6f}, accuracy:{avg_train_acc:.6f}; validation loss:{avg_val_loss:.6f}, accuracy:{avg_val_acc:.6f}; time:{epoch_end-epoch_start:.2f}s\n")
 
-			if highest_accuracy_val < avg_val_acc: #and minimum_loss_val > avg_val_loss:
+			if highest_accuracy_val <= avg_val_acc: #and minimum_loss_val > avg_val_loss:
 				torch.save(model.state_dict(), model_name)
 
-			if highest_accuracy_val < avg_val_acc:
+			if highest_accuracy_val <= avg_val_acc:
 				highest_accuracy_val = avg_val_acc
 				best_epoch_accuracy_val = epoch + 1
-			if minimum_loss_val > avg_val_loss:
+			if minimum_loss_val >= avg_val_loss:
 				minimum_loss_val = avg_val_loss
 				best_epoch_loss_val = epoch + 1
-			if highest_accuracy_train < avg_train_acc:
+			if highest_accuracy_train <= avg_train_acc:
 				highest_accuracy_train = avg_train_acc
 				best_epoch_accuracy_train = epoch + 1
-			if minimum_loss_train > avg_train_loss:
+			if minimum_loss_train >= avg_train_loss:
 				minimum_loss_train = avg_train_loss
 				best_epoch_loss_train = epoch + 1
 
-			if highest_accuracy_train > 0.99 and highest_accuracy_val < 0.5:
-				print(colorama.Fore.YELLOW + "overfitting")
+			if highest_accuracy_train > 0.98 or ((highest_accuracy_train - highest_accuracy_val) > 0.3 and epoch > 100):
+				print(colorama.Fore.YELLOW + f"overfitting: highest_accuracy_train:{highest_accuracy_train}; highest_accuracy_val:{highest_accuracy_val}")
+				file.write(f"overfitting: highest_accuracy_train:{highest_accuracy_train}; highest_accuracy_val:{highest_accuracy_val}\n")
 				break
 
-			# if avg_val_loss < 0.00001 and avg_val_acc > 0.99999:
-			# 	print(colorama.Fore.YELLOW + "stop training early")
-			# 	torch.save(model.state_dict(), model_name)
-			# 	break
+			if (epoch + 1 - best_epoch_accuracy_val) > patience: #or (epoch + 1 - best_epoch_loss_val) > patience:
+				print(colorama.Fore.YELLOW + f"stop training early: highest_accuracy_train:{highest_accuracy_train}; highest_accuracy_val:{highest_accuracy_val}")
+				file.write(f"stop training early: highest_accuracy_train:{highest_accuracy_train}; highest_accuracy_val:{highest_accuracy_val}\n")
+				break
 
 		print(f"train: loss:{minimum_loss_train:.6f}, epoch:{best_epoch_loss_train}, acc:{highest_accuracy_train:.6f}, epoch:{best_epoch_accuracy_train};  val: loss:{minimum_loss_val:.6f}, epoch:{best_epoch_loss_val}, acc:{highest_accuracy_val:.6f}, epoch:{best_epoch_accuracy_val}")
 		file.write(f"train: loss:{minimum_loss_train:.6f}, epoch:{best_epoch_loss_train}, acc:{highest_accuracy_train:.6f}, epoch:{best_epoch_accuracy_train};  val: loss:{minimum_loss_val:.6f}, epoch:{best_epoch_loss_val}, acc:{highest_accuracy_val:.6f}, epoch:{best_epoch_accuracy_val}\n")

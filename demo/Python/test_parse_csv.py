@@ -1094,11 +1094,45 @@ def parse_csv21(src_dataset_path, src_csv_file, suffix, dst_csv_file, dst_datase
 
 			shutil.copy(src_dataset_path+"/"+row[2], dst_dataset_path)
 
+def parse_csv22(src_csv_file1, src_csv_file2):
+	if not Path(src_csv_file1).exists() or not Path(src_csv_file2).exists():
+		raise FileNotFoundError(f"file doesn't exist: {src_csv_file1} or {src_csv_file2}")
+
+	images_name1 = []
+	with open(src_csv_file1, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			images_name1.append(row)
+	print(f"length: {len(images_name1)}; value: {images_name1[0]}")
+
+	images_name2 = []
+	with open(src_csv_file2, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			images_name2.append(row)
+	print(f"length: {len(images_name2)}; value: {images_name2[0]}")
+
+	count = 0
+	for row1 in images_name1:
+		name1 = row1[2]
+
+		flag = False
+		for row2 in images_name2:
+			name2 = row2[2]
+
+			if name1 == name2:
+				flag = True
+				break
+
+		if not flag:
+			count += 1
+
+	print(f"diff count: {count}")
 
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
 
-	parse_csv21(args.src_dataset_path1, args.src_csv_file1, args.suffix, args.dst_csv_file, args.dst_dataset_path1)
+	parse_csv22(args.src_csv_file1, args.src_csv_file2)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")
