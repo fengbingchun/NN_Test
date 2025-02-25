@@ -20,14 +20,16 @@ from datetime import datetime
 import torchvision.models as models
 import torch.nn.functional as F
 from collections import OrderedDict
+import cv2
+import numpy as np
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="Modified ResNet18/DenseNet image regression")
-	parser.add_argument("--task", required=True, type=str, choices=["split", "train", "predict"], help="specify what kind of task")
+	parser.add_argument("--task", required=True, type=str, choices=["split", "train", "predict", "convert"], help="specify what kind of task")
 	parser.add_argument("--src_dataset_path", type=str, help="source dataset path")
 	parser.add_argument("--csv_file", type=str, help="source csv file")
 	parser.add_argument("--dst_dataset_path", type=str, help="the path of the destination dataset after split")
-	parser.add_argument("--resize", default=(64,512), help="the size to which images are resized when split the dataset, if(0,0),no scaling is done")
+	parser.add_argument("--resize", default=(64,512), help="the size(h,w) to which images are resized when split the dataset, if(0,0),no scaling is done")
 	parser.add_argument("--fill_value", default=(114,114,114), help="image fill value")
 	parser.add_argument("--ratios", default=(0.8,0.1,0.1), help="the ratio of split the data set(train set, validation set, test set), the test set can be 0, but their sum must be 1")
 	parser.add_argument("--net", type=str, choices=["resnet18", "densenet"], help="specifies which network to use for training and prediction")
@@ -45,6 +47,8 @@ def parse_args():
 	parser.add_argument("--pretrained_model", type=str, default="", help="pretrained model loaded during training")
 	parser.add_argument("--predict_images_path", type=str, help="predict images path")
 	parser.add_argument("--gpu", type=str, default="0", help="set which graphics card to use. it can also support multiple graphics cards at the same time, for example 0,1")
+	parser.add_argument("--src_pth_model", type=str, help="src .pth model")
+	parser.add_argument("--dst_onnx_model", type=str, default="best.onnx", help="dst .onnx model")
 
 	args = parser.parse_args()
 	return args
@@ -676,6 +680,47 @@ def predict(model_name, images_path, mean, std, net, threshold, csv_file, last_f
 	hit_rate = float(count) / len(image_names)
 	print(f"total number of predict images: {len(image_names)}, hit rate: {hit_rate:.6f}")
 
+def convert(src_path_model, last_fc_features_length, resize, dst_onnx_model, mean, std, images_path):
+	model = DenseNet(growth_rate=32, block_config=(6,12,24,16), num_init_features=64, num_classes=1, last_fc_features_length=last_fc_features_length)
+	model.load_state_dict(torch.load(src_path_model))
+	model.eval()
+
+	dummy_input = torch.randn(1, 3, resize[0], resize[1]) # (1,c,h,w)
+
+	torch.onnx.export(
+		model,
+		dummy_input,
+		dst_onnx_model,
+		export_params=True,
+		opset_version=12,
+		do_constant_folding=True,
+		input_names=["input"],
+		output_names=["output"],
+		dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}}
+	)
+
+	mean = ast.literal_eval(mean) # str to tuple
+	std = ast.literal_eval(std)
+
+	image_names = get_images_list(images_path)
+	assert len(image_names) != 0, "no images found"
+
+	net = cv2.dnn.readNetFromONNX(dst_onnx_model)
+
+	for name in image_names:
+		image = cv2.imread(str(name))
+		if image is None:
+			raise FileNotFoundError(colorama.Fore.RED + f"could not load image: {name}")
+
+		image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+		blob = (image / 255.0 - mean) / std
+		blob = blob.transpose(2, 0, 1) # (h,w,c) --> (c,h,w)
+		blob = np.expand_dims(blob, axis=0)
+
+		net.setInput(blob)
+		output = net.forward()
+		print(f"name: {name.name}, output: {output}")
+
 
 def set_gpu(id):
 	os.environ["CUDA_VISIBLE_DEVICES"] = id # set which graphics card to use: 0,1,2..., default is 0
@@ -700,8 +745,10 @@ if __name__ == "__main__":
 	elif args.task == "train":
 		# python test_regression_custom_cnn.py --task train --src_dataset_path datasets/regression --epochs 100 --mean (0.51105501,0.2900612,0.45467574) --std (0.27224947583159903,0.28995317923225,0.13527405631842085) --model_name best.pth --net resnet18 --batch_size 2 --lr 0.0005
 		train(args.src_dataset_path, args.epochs, args.mean, args.std, args.model_name, args.net, args.pretrained_model, args.batch_size, args.threshold, args.lr, args.drop_rate, args.drop_rate2, args.loss_delta, args.last_fc_features_length)
-	else: # predict
+	elif args.task == "predict":
 		# python test_regression_custom_cnn.py --task predict --predict_images_path datasets/regression/test --mean (0.51105501,0.2900612,0.45467574) --std (0.27224947583159903,0.28995317923225,0.13527405631842085) --model_name best.pth --net resnet18 --csv_file datasets/regression/test.csv
 		predict(args.model_name, args.predict_images_path, args.mean, args.std, args.net, args.threshold, args.csv_file, args.last_fc_features_length)
+	else:
+		convert(args.src_pth_model, args.last_fc_features_length, args.resize, args.dst_onnx_model, args.mean, args.std, args.predict_images_path)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")
