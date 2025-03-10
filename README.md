@@ -81,9 +81,9 @@
 			```
 			conda create -n NN_Test python=3.9
 			conda activate NN_Test
-			pip install -r requirements.txt
 			git clone https://github.com/fengbingchun/NN_Test
 			cd NN_Test/demo/Python
+			pip install -r requirements.txt
 			```
 		- Code
 			- [KNN(K-Nearest Neighbor)](demo/Python/test_knn_classification.py)
@@ -93,6 +93,7 @@
 				- [k-means](demo/Python/test_k-means.py)
 				- [k-menas opencv](demo/Python/test_k-means_opencv.py)
 			- [txt to csv](demo/Python/test_txt_to_csv_convert.py)
+			- [XGBoost Regress](demo/Python/test_xgboost.py)
 	- MediaPipe
 		- Installation(Anaconda)
 			```

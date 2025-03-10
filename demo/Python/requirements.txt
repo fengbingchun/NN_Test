@@ -3,3 +3,4 @@ matplotlib
 pyquaternion
 pandas
 colorama
+xgboost-cpu
