@@ -1129,10 +1129,48 @@ def parse_csv22(src_csv_file1, src_csv_file2):
 
 	print(f"diff count: {count}")
 
+def parse_csv23(src_csv_file):
+	if not Path(src_csv_file).exists():
+		raise FileNotFoundError(f"file doesn't exist: {src_csv_file}")
+
+	datas = []
+	with open(src_csv_file, mode="r", newline="", encoding="utf-8") as file:
+		csv_reader = csv.reader(file)
+		for row in csv_reader:
+			datas.append(row)
+	print(f"length: {len(datas)}; value: {datas[0]}")
+
+	min_value1, max_value1 = 1000, 0
+	min_value2, max_value2 = 1000, 0
+
+	for row in datas:
+		value1 = float(row[1])
+		if min_value1 > value1:
+			min_value1 = value1
+		if max_value1 < value1:
+			max_value1 = value1
+
+		value2 = int(row[2])
+		if min_value2 > value2:
+			min_value2 = value2
+		if max_value2 < value2:
+			max_value2 = value2
+
+	print(f"min_value1: {min_value1}; max_value1: {max_value1}; min_value2: {min_value2}; max_value2: {max_value2}")
+
+	sort_data = []
+	for row in datas:
+		sort_data.append(int(row[2]))
+
+	sort_data.sort(key=None, reverse=True)
+	for index in range(10):
+		print(f"{sort_data[index]} ")
+
+
 if __name__ == "__main__":
 	colorama.init(autoreset=True)
 	args = parse_args()
 
-	parse_csv22(args.src_csv_file1, args.src_csv_file2)
+	parse_csv23(args.src_csv_file1)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")
