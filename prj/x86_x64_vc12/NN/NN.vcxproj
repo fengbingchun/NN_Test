@@ -69,7 +69,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>.\../../../lib/dbg/x64_vc12/NN.exe</OutputFile>
       <AdditionalLibraryDirectories>D:\soft\opencv\install\x64\vc17\lib;D:\soft\libtorch\debug\lib;D:\soft\onnxruntime\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world490d.lib;torch.lib;c10.lib;asmjit.lib;clog.lib;cpuinfo.lib;dnnl.lib;fbgemm.lib;fbjni.lib;fmtd.lib;kineto.lib;libprotobufd.lib;libprotobuf-lited.lib;libprotocd.lib;pthreadpool.lib;pytorch_jni.lib;torch_cpu.lib;XNNPACK.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world4100d.lib;torch.lib;c10.lib;asmjit.lib;clog.lib;cpuinfo.lib;dnnl.lib;fbgemm.lib;fbjni.lib;fmtd.lib;kineto.lib;libprotobufd.lib;libprotobuf-lited.lib;libprotocd.lib;pthreadpool.lib;pytorch_jni.lib;torch_cpu.lib;XNNPACK.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <OutputFile>.\../../../obj/dbg/x64_vc12/NN\NN.bsc</OutputFile>
@@ -101,7 +101,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>.\../../../lib/rel/x64_vc12/NN.exe</OutputFile>
-      <AdditionalDependencies>opencv_world490.lib;torch.lib;c10.lib;asmjit.lib;clog.lib;cpuinfo.lib;dnnl.lib;fbgemm.lib;fbjni.lib;fmt.lib;kineto.lib;libprotobuf.lib;libprotobuf-lite.lib;libprotoc.lib;pthreadpool.lib;pytorch_jni.lib;torch_cpu.lib;XNNPACK.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world4100.lib;torch.lib;c10.lib;asmjit.lib;clog.lib;cpuinfo.lib;dnnl.lib;fbgemm.lib;fbjni.lib;fmt.lib;kineto.lib;libprotobuf.lib;libprotobuf-lite.lib;libprotoc.lib;pthreadpool.lib;pytorch_jni.lib;torch_cpu.lib;XNNPACK.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\soft\opencv\install\x64\vc17\lib;D:\soft\libtorch\release\lib;D:\soft\onnxruntime\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
