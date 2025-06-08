@@ -406,9 +406,9 @@ def predict(task, model, verbose, dir_images, video_file, dir_result):
 
 			if task == "detect" or task =="segment":
 				for result in results:
-					# result.save(dir_result+"/"+image)
+					result.save(dir_result+"/"+image)
 					# boxes = parse_result(result); print(boxes); raise
-					draw_rect(result, dir_images+"/"+image, dir_result+"/"+image, buckle, count, save_result)
+					# draw_rect(result, dir_images+"/"+image, dir_result+"/"+image, buckle, count, save_result)
 			else:
 				print(f"class names:{results[0].names}: top5: {results[0].probs.top5}; conf:{results[0].probs.top5conf}")
 

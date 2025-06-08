@@ -51,11 +51,11 @@ inline int calculate_distance(int F, int W, int P)
 int test_monocular_ranging_face_triangle_similarity()
 {
 #ifdef _MSC_VER
-	constexpr char* file_name{ "../../../data/haarcascade_frontalface_alt.xml" };
-	constexpr char* image_name{ "../../../data/images/face/1.jpg" };
+	constexpr char file_name[]{ "../../../data/haarcascade_frontalface_alt.xml" };
+	constexpr char image_name[]{ "../../../data/images/face/1.jpg" };
 #else
-	constexpr char* file_name{ "data/haarcascade_frontalface_alt.xml" };
-	constexpr char* image_name{ "data/images/face/1.jpg" };
+	constexpr char file_name[]{ "data/haarcascade_frontalface_alt.xml" };
+	constexpr char image_name[]{ "data/images/face/1.jpg" };
 #endif
 
 	cv::CascadeClassifier face_cascade;
@@ -82,7 +82,7 @@ int test_monocular_ranging_face_triangle_similarity()
 	}
 
 	cv::Mat gray;
-	constexpr char* winn_ame{ "Monocular Ranging" };
+	constexpr char winn_ame[]{ "Monocular Ranging" };
 	cv::namedWindow(winn_ame, 1);
 	const std::string text{ "Distance = " };
 

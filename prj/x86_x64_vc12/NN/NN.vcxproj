@@ -62,7 +62,7 @@
       <ObjectFileName>.\../../../obj/dbg/x64_vc12/NN\</ObjectFileName>
       <ProgramDataBaseFileName>.\../../../obj/dbg/x64_vc12/NN\</ProgramDataBaseFileName>
       <AdditionalIncludeDirectories>../../../src/NN;D:\soft\opencv\install\include;../../../src/libsvm;D:\soft\libtorch\debug\include;D:\soft\libtorch\debug\include\torch\csrc\api\include;D:\soft\onnxruntime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -93,7 +93,7 @@
       </OpenMPSupport>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

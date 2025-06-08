@@ -38,6 +38,7 @@ demo/Python/*.data
 demo/Python/*.txt
 demo/Python/*.pth
 demo/Python/*.7z
+demo/Python/xgboost*
 demo/Python/utils/__pycache__/
 *.avi
 demo/Python/logs

@@ -94,7 +94,7 @@ int test_logistic_regression2_gradient_descent()
 	float eps = 1e-8; // Adadelta need to set
 	float beta1 = 0.8, beta2 = 0.8888; // Adam/AdaMax/Nadam need to set
 	fprintf(stdout, "optimization method: %s, batch size: %d, learning rate: %f, epochs: %d, eps: %f, error: %f\n",
-			ANN::enum_to_string(optim), batch_size, learning_rate, epochs, eps, error);
+			ANN::enum_to_string(optim).c_str(), batch_size, learning_rate, epochs, eps, error);
 
 	fprintf(stdout, "start train ...\n");
 	auto start = std::chrono::steady_clock::now();

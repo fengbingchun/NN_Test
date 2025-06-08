@@ -46,7 +46,7 @@ enum class Optimization {
 	Nadam // Nesterov-accelerated Adaptive Moment Estimation
 };
 
-inline char* enum_to_string(Optimization optim)
+inline std::string enum_to_string(Optimization optim)
 {
 	switch(optim) {
 		case Optimization::BGD: return "BGD";

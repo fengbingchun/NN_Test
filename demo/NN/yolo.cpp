@@ -30,17 +30,17 @@ constexpr float iou_threshold{ 0.50 }; // iou threshold
 constexpr float mask_threshold{ 0.50 }; // segment mask threshold
 
 #ifdef _MSC_VER
-constexpr char* onnx_file{ "../../../data/best.onnx" };
-constexpr char* torchscript_file{ "../../../data/best.torchscript" };
-constexpr char* images_dir{ "../../../data/images/predict" };
-constexpr char* result_dir{ "../../../data/result" };
-constexpr char* classes_file{ "../../../data/images/labels.txt" };
+constexpr char onnx_file[]{ "../../../data/best.onnx" };
+constexpr char torchscript_file[]{ "../../../data/best.torchscript" };
+constexpr char images_dir[]{ "../../../data/images/predict" };
+constexpr char result_dir[]{ "../../../data/result" };
+constexpr char classes_file[]{ "../../../data/images/labels.txt" };
 #else
-constexpr char* onnx_file{ "data/best.onnx" };
-constexpr char* torchscript_file{ "data/best.torchscript" };
-constexpr char* images_dir{ "data/images/predict" };
-constexpr char* result_dir{ "data/result" };
-constexpr char* classes_file{ "data/images/labels.txt" };
+constexpr char onnx_file[]{ "data/best.onnx" };
+constexpr char torchscript_file[]{ "data/best.torchscript" };
+constexpr char images_dir[]{ "data/images/predict" };
+constexpr char result_dir[]{ "data/result" };
+constexpr char classes_file[]{ "data/images/labels.txt" };
 #endif
 
 cv::Mat modify_image_size(const cv::Mat& img)
