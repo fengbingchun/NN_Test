@@ -15,6 +15,7 @@
 	- YOLOv8(OpenCV DNN, libtorch, onnxruntime)
 		- Object Detection
 		- Instance Segmentation
+		- Classify
 - mathematical formula's implement with C++
 	- Linear Algebra
 		- transpose

@@ -13,6 +13,7 @@
 #include <map>
 #include <memory>
 #include <chrono>
+#include <format>
 
 #include <opencv2/opencv.hpp>
 
@@ -76,7 +77,7 @@ auto get_dir_images(const char* name)
 {
 	std::map<std::string, std::string> images; // image name, image path + image name
 
-	for (auto const& dir_entry : std::filesystem::directory_iterator(name)) {
+	for (auto const& dir_entry : std::filesystem::recursive_directory_iterator(name)) {
 		if (dir_entry.is_regular_file())
 			images[dir_entry.path().filename().string()] = dir_entry.path().string();
 	}
@@ -475,6 +476,204 @@ void post_process_mask(const cv::Mat& output0, const cv::Mat& output1, const std
 }
 
 } // namespace
+
+/////////////////////////////////////////////////////////////////
+// Blog: https://blog.csdn.net/fengbingchun/article/details/148657259
+int test_yolov8_classify_opencv()
+{
+	auto net = cv::dnn::readNetFromONNX(onnx_file);
+	if (net.empty()) {
+		std::cerr << "Error: there are no layers in the network: " << onnx_file << std::endl;
+		return -1;
+	}
+
+	if (cuda_enabled) {
+		net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+		net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+	} else {
+		net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+		net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+	}
+
+	auto classes = parse_classes_file(classes_file);
+	if (classes.size() == 0) {
+		std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+		return -1;
+	}
+
+	constexpr int imgsz{ 224 };
+	for (const auto& [key, val] : get_dir_images(images_dir)) {
+		cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+		if (frame.empty()) {
+			std::cerr << "Warning: unable to load image: " << val << std::endl;
+			continue;
+		}
+
+		cv::Mat bgr = modify_image_size(frame); // top left padding
+		//cv::Mat bgr;
+		//letter_box(frame, bgr, std::vector<int>{imgsz, imgsz}); // center padding
+
+		cv::Mat blob;
+		cv::dnn::blobFromImage(bgr, blob, 1.0 / 255.0, cv::Size(imgsz, imgsz), cv::Scalar(), true, false);
+		net.setInput(blob);
+
+		std::vector<cv::Mat> outputs;
+		net.forward(outputs, net.getUnconnectedOutLayersNames());
+
+		double max_val{ 0. };
+		cv::Point max_idx{};
+		cv::minMaxLoc(outputs[0], 0, &max_val, 0, &max_idx);
+		std::cout << "image name: " << val << ", category: " << classes[max_idx.x] << ", conf: " << std::format("{:.4f}",max_val) << std::endl;
+	}
+
+	return 0;
+}
+
+int test_yolov8_classify_libtorch()
+{
+	if (auto flag = torch::cuda::is_available(); flag == true)
+		std::cout << "cuda is available" << std::endl;
+	else
+		std::cout << "cuda is not available" << std::endl;
+
+	torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
+
+	auto classes = parse_classes_file(classes_file);
+	if (classes.size() == 0) {
+		std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+		return -1;
+	}
+
+	try {
+		// load model
+		torch::jit::script::Module model;
+		if (torch::cuda::is_available() == true)
+			model = torch::jit::load(torchscript_file, torch::kCUDA);
+		else
+			model = torch::jit::load(torchscript_file, torch::kCPU);
+		model.eval();
+		// note: cpu is normal; gpu is abnormal: the model may not be fully placed on the gpu 
+		// model = torch::jit::load(file); model.to(torch::kCUDA) ==> model = torch::jit::load(file, torch::kCUDA)
+		// model.to(device, torch::kFloat32);
+
+		constexpr int imgsz{ 224 };
+		for (const auto& [key, val] : get_dir_images(images_dir)) {
+			// load image and preprocess
+			cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+			if (frame.empty()) {
+				std::cerr << "Warning: unable to load image: " << val << std::endl;
+				continue;
+			}
+
+			cv::Mat bgr;
+			letter_box(frame, bgr, std::vector<int>{imgsz, imgsz});
+
+			torch::Tensor tensor = torch::from_blob(bgr.data, { bgr.rows, bgr.cols, 3 }, torch::kByte).to(device);
+			tensor = tensor.toType(torch::kFloat32).div(255);
+			tensor = tensor.permute({ 2, 0, 1 });
+			tensor = tensor.unsqueeze(0);
+			std::vector<torch::jit::IValue> inputs{ tensor };
+
+			// inference
+			torch::Tensor output = model.forward(inputs).toTensor().cpu();
+			auto idx = std::get<1>(output.max(1, true)).item<int>();
+			std::cout << "image name: " << val << ", category: " << classes[idx] << ", conf: " << std::format("{:.4f}", torch::softmax(output, 1)[0][idx].item<float>()) << std::endl;
+		}
+	}
+	catch (const c10::Error& e) {
+		std::cerr << "Error: " << e.msg() << std::endl;
+		return -1;
+	}
+
+	return 0;
+}
+
+int test_yolov8_classify_onnxruntime()
+{
+	try {
+		Ort::Env env = Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Yolo");
+		Ort::SessionOptions session_option;
+
+		if (cuda_enabled) {
+			OrtCUDAProviderOptions cuda_option;
+			cuda_option.device_id = 0;
+			session_option.AppendExecutionProvider_CUDA(cuda_option);
+		}
+
+		session_option.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+		session_option.SetIntraOpNumThreads(1);
+		session_option.SetLogSeverityLevel(3);
+
+		Ort::Session session(env, ctow(onnx_file).c_str(), session_option);
+		Ort::AllocatorWithDefaultOptions allocator;
+		std::vector<const char*> input_node_names, output_node_names;
+		std::vector<std::string> input_node_names_, output_node_names_;
+
+		for (auto i = 0; i < session.GetInputCount(); ++i) {
+			Ort::AllocatedStringPtr input_node_name = session.GetInputNameAllocated(i, allocator);
+			input_node_names_.emplace_back(input_node_name.get());
+		}
+
+		for (auto i = 0; i < session.GetOutputCount(); ++i) {
+			Ort::AllocatedStringPtr output_node_name = session.GetOutputNameAllocated(i, allocator);
+			output_node_names_.emplace_back(output_node_name.get());
+		}
+
+		for (auto i = 0; i < input_node_names_.size(); ++i)
+			input_node_names.emplace_back(input_node_names_[i].c_str());
+		for (auto i = 0; i < output_node_names_.size(); ++i)
+			output_node_names.emplace_back(output_node_names_[i].c_str());
+
+		constexpr int imgsz{ 224 };
+		Ort::RunOptions options(nullptr);
+		std::unique_ptr<float[]> blob(new float[imgsz * imgsz * 3]);
+		std::vector<int64_t> input_node_dims{ 1, 3, imgsz, imgsz };
+
+		auto classes = parse_classes_file(classes_file);
+		if (classes.size() == 0) {
+			std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+			return -1;
+		}
+
+		for (const auto& [key, val] : get_dir_images(images_dir)) {
+			cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+			if (frame.empty()) {
+				std::cerr << "Warning: unable to load image: " << val << std::endl;
+				continue;
+			}
+
+			cv::Mat rgb;
+			letter_box(frame, rgb, std::vector<int>{imgsz, imgsz});
+			cv::cvtColor(rgb, rgb, cv::COLOR_BGR2RGB);
+			image_to_blob(rgb, blob.get());
+			Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
+				Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU), blob.get(), 3 * imgsz * imgsz, input_node_dims.data(), input_node_dims.size());
+			auto output_tensors = session.Run(options, input_node_names.data(), &input_tensor, input_node_names.size(), output_node_names.data(), output_node_names.size());
+
+			Ort::Value& output_tensor = output_tensors[0];
+			float* output_data = output_tensor.GetTensorMutableData<float>();
+			auto shape = output_tensor.GetTensorTypeAndShapeInfo().GetShape();
+			auto num = shape.size() > 1 ? shape[1] : shape[0];
+
+			float conf{ 0. };
+			int idx{ -1 };
+			for (auto i = 0; i < num; ++i) {
+				if (output_data[i] > conf) {
+					conf = output_data[i];
+					idx = static_cast<int>(i);
+				}
+			}
+
+			std::cout << "image name: " << val << ", category: " << classes[idx] << ", conf: " << std::format("{:.4f}", conf) << std::endl;
+		}
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		return -1;
+	}
+
+	return 0;
+}
 
 /////////////////////////////////////////////////////////////////
 // Blog: https://blog.csdn.net/fengbingchun/article/details/139203567
