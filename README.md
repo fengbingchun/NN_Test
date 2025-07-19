@@ -128,6 +128,7 @@
 			pip install nncf==2.8.0 # openvino INT8 need
 			pip install openpyxl # write excel file
 			pip install moviepy # parse video file
+			pip install torch-pruning==1.6.0
 
 			git clone https://github.com/fengbingchun/NN_Test
 			cd NN_Test/demo/Python
@@ -142,6 +143,7 @@
 			- [YOLOv8 preprocess: detect/segment](demo/Python/test_yolov8_preprocess.py)
 			- [YOLOv8 postprocess: detect/segment](demo/Python/test_yolov8_postprocess.py)
 			- [PyTorch learning rate warmup](demo/Python/test_learning_rate_warmup.py)
+			- [model pruning: Torch-Pruning](demo/Python/test_model_pruning_torch-pruning.py)
 
 **The project support platform:**
 - windows10 64 bits: It can be directly build with VS2022 in windows10 64bits.
@@ -157,4 +159,3 @@
 
 
 **Blog:** [fengbingchun](https://blog.csdn.net/fengbingchun/category_3185667.html)
-
