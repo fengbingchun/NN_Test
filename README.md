@@ -144,6 +144,7 @@
 			- [YOLOv8 postprocess: detect/segment](demo/Python/test_yolov8_postprocess.py)
 			- [PyTorch learning rate warmup](demo/Python/test_learning_rate_warmup.py)
 			- [model pruning: Torch-Pruning](demo/Python/test_model_pruning_torch-pruning.py)
+			- [knowledge distillation: classify](demo/Python/test_model_knowledge_distillation.py)
 
 **The project support platform:**
 - windows10 64 bits: It can be directly build with VS2022 in windows10 64bits.
