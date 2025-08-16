@@ -1,4 +1,5 @@
-opencv-python
+opencv-python==4.12.0.88
+opencv-contrib-python==4.12.0.88
 matplotlib
 pyquaternion
 pandas

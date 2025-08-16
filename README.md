@@ -129,6 +129,7 @@
 			pip install openpyxl # write excel file
 			pip install moviepy # parse video file
 			pip install torch-pruning==1.6.0
+			pip install scikit-image
 
 			git clone https://github.com/fengbingchun/NN_Test
 			cd NN_Test/demo/Python
@@ -145,6 +146,7 @@
 			- [PyTorch learning rate warmup](demo/Python/test_learning_rate_warmup.py)
 			- [model pruning: Torch-Pruning](demo/Python/test_model_pruning_torch-pruning.py)
 			- [knowledge distillation: classify](demo/Python/test_model_knowledge_distillation.py)
+			- [image similarity algorithms](demo/Python/test_image_similarity_algorithms.py)
 
 **The project support platform:**
 - windows10 64 bits: It can be directly build with VS2022 in windows10 64bits.
