@@ -146,6 +146,7 @@
 			- [PyTorch learning rate warmup](demo/Python/test_learning_rate_warmup.py)
 			- [model pruning: Torch-Pruning](demo/Python/test_model_pruning_torch-pruning.py)
 			- [knowledge distillation: classify](demo/Python/test_model_knowledge_distillation.py)
+			- [model quantization: PTQ](demo/Python/test_model_quantization_ptq.py)
 			- [image similarity algorithms](demo/Python/test_image_similarity_algorithms.py)
 
 **The project support platform:**
