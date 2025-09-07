@@ -107,6 +107,16 @@
 			```
 		- Code
 			- [face monocular ranging](demo/Python/test_mediapipe_midas_face_monocular_ranging.py)
+	- Ollama
+		- Installation(Anaconda)
+			```
+			conda create --name ollama python=3.10 -y
+			conda activate ollama
+			pip install ollama==0.5.3
+			pip install colorama
+			```
+		- Code
+			- [sync interface](demo/Python/test_ollama_sync.py)
 	- Ultralytics
 		- Installation(Anaconda)
 			```
