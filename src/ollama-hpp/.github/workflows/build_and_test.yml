@@ -1,0 +1,27 @@
+name: Build Test Examples
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+#    container:
+#      image: ollama/ollama:latest
+    steps:
+    - uses: actions/checkout@v4
+#    - name: Install dependencies
+#      run: |
+ #       apt-get update && apt-get install -y gcc make
+  #  - name: Change directory to the checked-out code
+  #    run: cd $GITHUB_WORKSPACE && echo "Now in $(pwd)" && ls -lrth
+  #  - name: Pull models
+  #    run: systemctl restart ollama && ollama pull llama3:8b
+    - name: make
+      run: make -j8
+  #  - name: test
+  #    run: build/test

@@ -61,7 +61,7 @@
       <AssemblerListingLocation>.\../../../obj/dbg/x64_vc12/NN\</AssemblerListingLocation>
       <ObjectFileName>.\../../../obj/dbg/x64_vc12/NN\</ObjectFileName>
       <ProgramDataBaseFileName>.\../../../obj/dbg/x64_vc12/NN\</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>../../../src/NN;D:\soft\opencv\install\include;../../../src/libsvm;D:\soft\libtorch\debug\include;D:\soft\libtorch\debug\include\torch\csrc\api\include;D:\soft\onnxruntime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../src/NN;D:\soft\opencv\install\include;../../../src/libsvm;D:\soft\libtorch\debug\include;D:\soft\libtorch\debug\include\torch\csrc\api\include;D:\soft\onnxruntime\include;../../../src/ollama-hpp/singleheader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -84,7 +84,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../../src/NN;D:\soft\opencv\install\include;../../../src/libsvm;D:\soft\libtorch\release\include;D:\soft\libtorch\release\include\torch\csrc\api\include;D:\soft\onnxruntime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../src/NN;D:\soft\opencv\install\include;../../../src/libsvm;D:\soft\libtorch\release\include;D:\soft\libtorch\release\include\torch\csrc\api\include;D:\soft\onnxruntime\include;../../../src/ollama-hpp/singleheader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderOutputFile>.\../../../obj/rel/x64_vc12/NN\NN.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\../../../obj/rel/x64_vc12/NN\</AssemblerListingLocation>
       <ObjectFileName>.\../../../obj/rel/x64_vc12/NN\</ObjectFileName>
@@ -114,6 +114,7 @@
     <ClCompile Include="..\..\..\demo\NN\monocular_ranging.cpp" />
     <ClCompile Include="..\..\..\demo\NN\opencv.cpp" />
     <ClCompile Include="..\..\..\demo\NN\test_NN.cpp" />
+    <ClCompile Include="..\..\..\demo\NN\test_ollama.cpp" />
     <ClCompile Include="..\..\..\demo\NN\yolo.cpp" />
     <ClCompile Include="..\..\..\src\libsvm\svm.cpp" />
     <ClCompile Include="..\..\..\src\NN\batch_normalization.cpp" />

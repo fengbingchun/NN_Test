@@ -1,6 +1,11 @@
 #ifndef FBC_TEST_NN_FUNSET_HPP_
 #define FBC_TEST_NN_FUNSET_HPP_
 
+int test_ollama_model_list();
+int test_ollama_chat();
+int test_ollama_chat_stream();
+int test_ollama_generate();
+int test_ollama_generate_stream();
 int test_monocular_ranging_face_triangle_similarity();
 int test_logistic_regression2_gradient_descent();
 int test_batch_normalization(); // Batch Normalization

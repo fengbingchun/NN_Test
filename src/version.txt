@@ -14,4 +14,9 @@
 4. infer:
 	commit: d786f52
 	date: 2023.03.18
-	usl: https://github.com/shouxieai/infer
+	url: https://github.com/shouxieai/infer
+5. ollama-hpp:
+	commit: 0f8c04c
+	version: 0.9.6
+	date: 2025.06.22
+	url: https://github.com/jmont-dev/ollama-hpp

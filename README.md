@@ -69,6 +69,7 @@
 	- tiny-dnn [GitHub](https://github.com/tiny-dnn/tiny-dnn)
 	- libsvm [GitHub](https://github.com/cjlin1/libsvm)
 	- tensorrt infer [GitHub](https://github.com/shouxieai/infer)
+	- ollama-hpp[GitHub](https://github.com/jmont-dev/ollama-hpp)
 	- OpenCV [GitHub](https://github.com/opencv/opencv)
 		- Logistic Regression
 		- Support Vector Machines(SVM)

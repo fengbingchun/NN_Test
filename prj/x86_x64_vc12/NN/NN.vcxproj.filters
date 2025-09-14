@@ -81,6 +81,9 @@
     <ClCompile Include="..\..\..\demo\NN\yolo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\demo\NN\test_ollama.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\demo\NN\funset.hpp">
