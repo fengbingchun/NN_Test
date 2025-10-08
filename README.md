@@ -114,10 +114,11 @@
 			conda create --name ollama python=3.10 -y
 			conda activate ollama
 			pip install ollama==0.5.3
-			pip install colorama
+			pip install colorama chromadb tqdm
 			```
 		- Code
 			- [sync interface](demo/Python/test_ollama_sync.py)
+			- [ollama rag](demo/Python/test_ollama_rag.py)
 	- Ultralytics
 		- Installation(Anaconda)
 			```
