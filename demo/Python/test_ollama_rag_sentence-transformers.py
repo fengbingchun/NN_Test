@@ -6,29 +6,28 @@ from tqdm import tqdm
 import chromadb
 import time
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
-# Blog: https://blog.csdn.net/fengbingchun/article/details/152724542
+# Blog: https://blog.csdn.net/fengbingchun/article/details/153526949
 
 def parse_args():
-	parser = argparse.ArgumentParser(description="ollama rag chat")
+	parser = argparse.ArgumentParser(description="ollama rag chat: sentence-transformers")
 	parser.add_argument("--llm_model", type=str, default="qwen3:1.7b", help="llm model name, for example:qwen3:1.7b")
-	parser.add_argument("--embed_model", type=str, default="qllama/bge-small-zh-v1.5", help="embedded model, for example:nomic-embed-text:v1.5")
+	parser.add_argument("--embed_model", type=str, default="BAAI/bge-small-zh-v1.5", help="sentence-transformers model")
 	parser.add_argument("--jsonl", type=str, default="csdn.jsonl", help="jsonl(JSON Lines) file")
-	parser.add_argument("--db_dir", type=str, default="chroma_db_ollama", help="vector database(chromadb) storage path, for example:chroma_db_ollama")
+	parser.add_argument("--db_dir", type=str, default="chroma_db_sentence_transformers", help="vector database(chromadb) storage path")
 	parser.add_argument("--similarity_threshold", type=float, default=0.8, help="similarity threshold, the higher the stricter")
 	parser.add_argument("--question", type=str, help="question")
 
 	args = parser.parse_args()
 	return args
 
-def normalize_embedding(emb): # L2 normalize
-	vec = np.array(emb, dtype=np.float32)
-	norm = np.linalg.norm(vec)
-	return vec / norm if norm > 0 else vec
+def load_embed_model(model_name):
+	return SentenceTransformer(model_name) # if the model already exists locally, add the parameter: local_files_only=True
 
 def build_vector_db(db_dir, jsonl, embed_model):
 	client = chromadb.PersistentClient(path=db_dir)
-	collection = client.get_or_create_collection(name="csdn_qa_ollama", metadata={"hnsw:space":"cosine"})
+	collection = client.get_or_create_collection(name="csdn_qa_sentence-transformers", metadata={"hnsw:space":"cosine"})
 	if collection.count() > 0:
 		return collection
 
@@ -37,16 +36,15 @@ def build_vector_db(db_dir, jsonl, embed_model):
 	with open(jsonl, "r", encoding="utf-8") as f:
 		data = [json.loads(line.strip()) for line in f]
 
-	for i, item in enumerate(tqdm(data, desc="Embedding with Ollama")):
+	for i, item in enumerate(tqdm(data, desc="Embedding with sentence-transformers")):
 		question = item["question"]
 		answer = item["answer"]
 
-		res = ollama.embeddings(model=embed_model, prompt=question)
-		emb = res["embedding"]
+		emb = embed_model.encode(question, normalize_embeddings=True).tolist()
 
 		collection.add(
 			ids=[str(i)],
-			embeddings=[normalize_embedding(emb)],
+			embeddings=[emb],
 			metadatas=[{"question": question, "answer": answer}]
 		)
 		time.sleep(0.05)
@@ -55,9 +53,8 @@ def build_vector_db(db_dir, jsonl, embed_model):
 	return collection
 
 def retrieve_answer(embed_model, collection, similarity_threshold, question):
-	res = ollama.embeddings(model=embed_model, prompt=question)
-	query_vec = normalize_embedding(res["embedding"])
-	results = collection.query(query_embeddings=[query_vec], n_results=1) # collection.query automatically performs L2 normalization when "hnsw:space":"cosine" is specified
+	query_vec = embed_model.encode(question, normalize_embeddings=True).tolist()
+	results = collection.query(query_embeddings=[query_vec], n_results=1)
 	print(f"vector len: {len(query_vec)}; norm: {np.linalg.norm(query_vec):.4f}; vector: {query_vec[:5]}")
 	if not results["ids"]:
 		return None
@@ -69,14 +66,16 @@ def retrieve_answer(embed_model, collection, similarity_threshold, question):
 		return f"question: {meta['question']}; link: {meta['answer']}"
 	return None
 
-def chat(llm_model, embed_model, jsonl, db_dir, similarity_threshold, question):
+def chat(llm_model_name, embed_model_name, jsonl, db_dir, similarity_threshold, question):
+	embed_model = load_embed_model(embed_model_name)
+
 	collection = build_vector_db(db_dir, jsonl, embed_model)
 	ans = retrieve_answer(embed_model, collection, similarity_threshold, question)
 	if ans:
 		print(ans)
 	else:
 		try:
-			stream = ollama.chat(model=llm_model, messages=[{"role": "user", "content": question}], stream=True)
+			stream = ollama.chat(model=llm_model_name, messages=[{"role": "user", "content": question}], stream=True)
 			print("Answer: ", end="", flush=True)
 
 			for chunk in stream:

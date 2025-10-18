@@ -45,3 +45,4 @@ demo/Python/logs
 demo/Python/run.sh
 note.md
 demo/Python/chroma_db_ollama
+demo/Python/chroma_db_sentence_transformers

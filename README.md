@@ -115,10 +115,12 @@
 			conda activate ollama
 			pip install ollama==0.5.3
 			pip install colorama chromadb tqdm
+			pip install sentence-transformers==5.1.1
 			```
 		- Code
 			- [sync interface](demo/Python/test_ollama_sync.py)
 			- [ollama rag](demo/Python/test_ollama_rag.py)
+			- [ollama rag: sentence_transformers](demo/Python/test_ollama_rag_sentence-transformers.py)
 	- Ultralytics
 		- Installation(Anaconda)
 			```
