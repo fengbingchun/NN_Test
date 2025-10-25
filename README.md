@@ -113,14 +113,17 @@
 			```
 			conda create --name ollama python=3.10 -y
 			conda activate ollama
-			pip install ollama==0.5.3
+			pip install ollama
 			pip install colorama chromadb tqdm
-			pip install sentence-transformers==5.1.1
+			pip install sentence-transformers
+			pip install langchain==1.0.0 langchain-huggingface langchain-chroma langchain-ollama jq
+			pip install torch==2.2.2 transformers==4.57.0
 			```
 		- Code
 			- [sync interface](demo/Python/test_ollama_sync.py)
 			- [ollama rag](demo/Python/test_ollama_rag.py)
 			- [ollama rag: sentence_transformers](demo/Python/test_ollama_rag_sentence-transformers.py)
+			- [rag: LangChain](demo/Python/test_rag_langchain.py)
 	- Ultralytics
 		- Installation(Anaconda)
 			```
