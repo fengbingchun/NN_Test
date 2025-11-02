@@ -117,13 +117,14 @@
 			pip install colorama chromadb tqdm
 			pip install sentence-transformers
 			pip install langchain==1.0.0 langchain-huggingface langchain-chroma langchain-ollama jq
-			pip install torch==2.2.2 transformers==4.57.0
+			pip install  torch==2.6.0 transformers==4.57.0 torchvision==0.21.0 opencv-python==4.10.0.84 timm sentencepiece scikit-image
 			```
 		- Code
-			- [sync interface](demo/Python/test_ollama_sync.py)
+			- [sync ollama interface](demo/Python/test_ollama_sync.py)
 			- [ollama rag](demo/Python/test_ollama_rag.py)
 			- [ollama rag: sentence_transformers](demo/Python/test_ollama_rag_sentence-transformers.py)
-			- [rag: LangChain](demo/Python/test_rag_langchain.py)
+			- [langchain rag](demo/Python/test_rag_langchain.py)
+			- [Transformers pipeline](demo/Python/test_transformers_pipeline.py)
 	- Ultralytics
 		- Installation(Anaconda)
 			```
