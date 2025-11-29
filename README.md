@@ -118,6 +118,7 @@
 			pip install sentence-transformers
 			pip install langchain==1.0.0 langchain-huggingface langchain-chroma langchain-ollama jq
 			pip install torch==2.6.0 transformers==4.57.0 torchvision==0.21.0 opencv-python==4.10.0.84 timm sentencepiece scikit-image
+			pip install accelerate>=0.26.0
 			pip install labelme2coco
 			```
 		- Code

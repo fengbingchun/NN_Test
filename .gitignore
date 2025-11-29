@@ -47,3 +47,5 @@ note.md
 demo/Python/chroma_db_*
 demo/Python/PekingU
 demo/Python/melon_detect
+demo/Python/__pycache__/
+demo/Python/model.safetensors
