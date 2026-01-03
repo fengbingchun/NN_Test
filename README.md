@@ -127,6 +127,7 @@
 			- [ollama rag: sentence_transformers](demo/Python/test_ollama_rag_sentence-transformers.py)
 			- [langchain rag](demo/Python/test_rag_langchain.py)
 			- [Transformers pipeline](demo/Python/test_transformers_pipeline.py)
+			- [Transformers Detect model convert to ONNX](demo/Python/test_transformers_detect_model_convert_to_onnx.py)
 			- [CocoDataset class](demo/Python/test_labelme2coco_CocoDataset.py)
 			- [PyTorch set seed](demo/Python/test_set_seed.py)
 	- Ultralytics
