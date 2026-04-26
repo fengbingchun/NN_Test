@@ -1,4 +1,4 @@
-#include "yolo.hpp"
+﻿#include "yolo.hpp"
 
 #ifdef _MSC_VER
 
@@ -17,22 +17,22 @@
 #include <cmath>
 
 #include <opencv2/opencv.hpp>
-
 #include <torch/torch.h>
 #include <torch/script.h>
-
 #include <onnxruntime_cxx_api.h>
+#include <openvino/openvino.hpp>
 
 namespace {
 
 constexpr bool cuda_enabled{ false };
-constexpr int input_size[2]{ 640, 640 }; // {height,width}, input shape (1, 3, 640, 640) BCHW and output shape(s): detect:(1,6,8400); segment:(1,38,8400),(1,32,160,160)
+constexpr int input_size[2]{ 640, 640 }; // {640,640} or {224,224} {height,width}, input shape (1, 3, 640, 640) BCHW and output shape(s): detect:(1,6,8400); segment:(1,38,8400),(1,32,160,160)
 constexpr float confidence_threshold{ 0.45 }; // confidence threshold
 constexpr float iou_threshold{ 0.50 }; // iou threshold
 constexpr float mask_threshold{ 0.50 }; // segment mask threshold
 
 constexpr char onnx_file[]{ "../../../data/best.onnx" };
 constexpr char torchscript_file[]{ "../../../data/best.torchscript" };
+constexpr char openvino_file[]{ "../../../data/best.xml" };
 constexpr char images_dir[]{ "../../../data/images/predict" };
 constexpr char result_dir[]{ "../../../data/result" };
 constexpr char classes_file[]{ "../../../data/images/labels.txt" };
@@ -120,7 +120,7 @@ void draw_boxes(const std::vector<std::string>& classes, const std::vector<int>&
 float letter_box(const cv::Mat& src, cv::Mat& dst, const std::vector<int>& imgsz)
 {
 	if (src.cols == imgsz[1] && src.rows == imgsz[0]) {
-		if (src.data != dst.data);
+		if (src.data != dst.data)
 			dst = src.clone();
 		return 1.;
 	}
@@ -554,6 +554,49 @@ void post_process2(const float* data, int rows, int stride, float xfactor, float
 	draw_rotated_rect(classes, ids, confs, result, image_name, frame);
 }
 
+typedef struct OVContext {
+	ov::Core core{};
+	ov::CompiledModel compiled_model{};
+	ov::InferRequest infer_request{};
+	ov::Shape input_shape{};
+} OVContext;
+
+OVContext openvino_init()
+{
+	OVContext ctx{};
+
+	std::cout << "available devices: ";
+	for (const auto& dev : ctx.core.get_available_devices())
+		std::cout << dev << " ";
+	std::cout << std::endl;
+
+	std::string device_name{ "CPU" };
+	if (cuda_enabled)
+		device_name = "GPU";
+
+	auto model = ctx.core.read_model(openvino_file);
+	ctx.compiled_model = ctx.core.compile_model(model, device_name);
+	ctx.infer_request = ctx.compiled_model.create_infer_request();
+	ctx.input_shape = model->input().get_shape(); // [1,3,H,W]
+
+	return ctx;
+}
+
+std::vector<ov::Tensor> openvino_infer(const cv::Mat& input, OVContext& ctx)
+{
+	ov::Tensor input_tensor(ov::element::f32, ctx.input_shape, input.data);
+
+	ctx.infer_request.set_input_tensor(input_tensor);
+	ctx.infer_request.infer();
+
+	std::vector<ov::Tensor> outputs; // classify: [1, num_classes]; detect: [1, 4 + num_classes, num_boxes]; segment: output0: [1, 4 + num_classes + mask_dim, num_boxes] output1: [1, mask_dim, mask_h, mask_w]
+	for (size_t i = 0; i < ctx.compiled_model.outputs().size(); ++i) {
+		outputs.push_back(ctx.infer_request.get_output_tensor(i));
+	}
+
+	return outputs;
+}
+
 } // namespace
 
 /////////////////////////////////////////////////////////////////
@@ -749,6 +792,41 @@ int test_yolov8_classify_onnxruntime()
 	catch (const std::exception& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		return -1;
+	}
+
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////////
+// Blog: https://blog.csdn.net/fengbingchun/article/details/160527438
+int test_yolov8_classify_openvino()
+{
+	auto classes = parse_classes_file(classes_file);
+	if (classes.size() == 0) {
+		std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+		return -1;
+	}
+
+	OVContext ctx = openvino_init();
+	const auto net_w{ ctx.input_shape[3] }, net_h{ ctx.input_shape[2] };
+
+	for (const auto& [key, val] : get_dir_images(images_dir)) {
+		cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+		if (frame.empty()) {
+			std::cerr << "Warning: unable to load image: " << val << std::endl;
+			continue;
+		}
+
+		cv::resize(frame, frame, cv::Size(net_w, net_h));
+		cv::Mat blob;
+		cv::dnn::blobFromImage(frame, blob, 1.0 / 255.0, cv::Size(net_w, net_h), cv::Scalar(), true, false);
+
+		auto outputs = openvino_infer(blob, ctx);
+
+		const float* data = outputs[0].data<const float>();
+		int num_classes = outputs[0].get_shape()[1];
+		auto class_id = std::max_element(data, data + num_classes) - data;
+		std::cout << "image name: " << key << ", class id: " << class_id << ", class name: " << classes[class_id] << std::endl;
 	}
 
 	return 0;
@@ -1002,6 +1080,48 @@ int test_yolov8_detect_onnxruntime()
 	catch (const std::exception& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		return -1;
+	}
+
+	return 0;
+}
+
+int test_yolov8_detect_openvino()
+{
+	namespace fs = std::filesystem;
+
+	if (!fs::exists(result_dir)) {
+		fs::create_directories(result_dir);
+	}
+
+	auto classes = parse_classes_file(classes_file);
+	if (classes.size() == 0) {
+		std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+		return -1;
+	}
+
+	OVContext ctx = openvino_init();
+	const int net_w{ static_cast<int>(ctx.input_shape[3]) }, net_h{ static_cast<int>(ctx.input_shape[2]) };
+
+	for (const auto& [key, val] : get_dir_images(images_dir)) {
+		cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+		if (frame.empty()) {
+			std::cerr << "Warning: unable to load image: " << val << std::endl;
+			continue;
+		}
+
+		cv::Mat blob{};
+		cv::Mat bgr = modify_image_size(frame);
+		cv::dnn::blobFromImage(bgr, blob, 1.0 / 255.0, cv::Size(net_w, net_h), cv::Scalar(), true, false);
+
+		auto outputs = openvino_infer(blob, ctx);
+		auto output_shape = outputs[0].get_shape();
+		const cv::Mat src(cv::Size(static_cast<int>(output_shape[2]), static_cast<int>(output_shape[1])), CV_32FC1, (float*)outputs[0].data<const float>());
+		cv::Mat transposed{};
+		cv::transpose(src, transposed);
+
+		float scalex = bgr.cols * 1.f / net_w;
+		float scaley = bgr.rows * 1.f / net_h;
+		post_process((float*)transposed.data, transposed.rows, transposed.cols, scalex, scaley, classes, key, frame);
 	}
 
 	return 0;
@@ -1264,6 +1384,53 @@ int test_yolov8_segment_libtorch()
 	return 0;
 }
 
+int test_yolov8_segment_openvino()
+{
+	namespace fs = std::filesystem;
+
+	if (!fs::exists(result_dir)) {
+		fs::create_directories(result_dir);
+	}
+
+	auto classes = parse_classes_file(classes_file);
+	if (classes.size() == 0) {
+		std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+		return -1;
+	}
+
+	OVContext ctx = openvino_init();
+	const int net_w{ static_cast<int>(ctx.input_shape[3]) }, net_h{ static_cast<int>(ctx.input_shape[2]) };
+
+	for (const auto& [key, val] : get_dir_images(images_dir)) {
+		cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+		if (frame.empty()) {
+			std::cerr << "Warning: unable to load image: " << val << std::endl;
+			continue;
+		}
+
+		cv::Mat blob{};
+		cv::Mat bgr = modify_image_size(frame);
+		cv::dnn::blobFromImage(bgr, blob, 1.0 / 255.0, cv::Size(net_w, net_h), cv::Scalar(), true, false);
+
+		auto outputs = openvino_infer(blob, ctx);
+		auto output1_shape = outputs[0].get_shape();
+		auto output2_shape = outputs[1].get_shape();
+
+		const cv::Mat src(cv::Size(static_cast<int>(output1_shape[2]), static_cast<int>(output1_shape[1])), CV_32FC1, (float*)outputs[0].data<const float>());
+		cv::Mat transposed{};
+		cv::transpose(src, transposed);
+
+		std::vector<int> sizes;
+		for (int i = 0; i < 4; ++i)
+			sizes.emplace_back(output2_shape[i]);
+		cv::Mat mask = cv::Mat(sizes, CV_32F, (float*)outputs[1].data<const float>());
+
+		post_process_mask(transposed, mask, sizes, classes, key, frame);
+	}
+
+	return 0;
+}
+
 /////////////////////////////////////////////////////////////////
 // Blog: https://blog.csdn.net/fengbingchun/article/details/157615429
 int test_yolo11_obb_opencv()
@@ -1394,6 +1561,42 @@ int test_yolo11_obb_onnxruntime()
 	catch (const std::exception& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		return -1;
+	}
+
+	return 0;
+}
+
+int test_yolov8_obb_openvino()
+{
+	namespace fs = std::filesystem;
+
+	if (!fs::exists(result_dir)) {
+		fs::create_directories(result_dir);
+	}
+
+	OVContext ctx = openvino_init();
+	const int net_w{ static_cast<int>(ctx.input_shape[3]) }, net_h{ static_cast<int>(ctx.input_shape[2]) };
+
+	for (const auto& [key, val] : get_dir_images(images_dir)) {
+		cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+		if (frame.empty()) {
+			std::cerr << "Warning: unable to load image: " << val << std::endl;
+			continue;
+		}
+
+		cv::Mat blob{};
+		cv::Mat bgr = modify_image_size(frame);
+		cv::dnn::blobFromImage(bgr, blob, 1.0 / 255.0, cv::Size(net_w, net_h), cv::Scalar(), true, false);
+
+		auto outputs = openvino_infer(blob, ctx);
+		auto output_shape = outputs[0].get_shape();
+		const cv::Mat src(cv::Size(static_cast<int>(output_shape[2]), static_cast<int>(output_shape[1])), CV_32FC1, (float*)outputs[0].data<const float>());
+		cv::Mat transposed{};
+		cv::transpose(src, transposed);
+
+		float scalex = bgr.cols * 1.f / net_w;
+		float scaley = bgr.rows * 1.f / net_h;
+		post_process2((float*)transposed.data, transposed.rows, transposed.cols, scalex, scaley, obb_class_names, key, frame);
 	}
 
 	return 0;
