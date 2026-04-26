@@ -177,6 +177,7 @@
 			- [model quantization: PTQ](demo/Python/test_model_quantization_ptq.py)
 			- [image similarity algorithms](demo/Python/test_image_similarity_algorithms.py)
 			- [PyTorch model convert to OpenVINO](demo/Python/test_model_convert_pytorch_openvino.py)
+			- [TorchMetrics's usage](demo/Python/test_torchmetrics.py)
 
 **The project support platform:**
 - windows10 64 bits: It can be directly build with VS2022 in windows10 64bits.
