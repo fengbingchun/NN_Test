@@ -178,6 +178,18 @@
 			- [image similarity algorithms](demo/Python/test_image_similarity_algorithms.py)
 			- [PyTorch model convert to OpenVINO](demo/Python/test_model_convert_pytorch_openvino.py)
 			- [TorchMetrics's usage](demo/Python/test_torchmetrics.py)
+	- PaddleOCR
+		- Installation(Anaconda)
+			```
+			conda create --name paddleocr python=3.10 -y
+			conda activate paddleocr
+			pip install paddlepaddle==3.3.0 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/ # only CPU
+			pip install paddlepaddle-gpu==3.3.1 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/ # CUDA 11.8
+			pip install paddleocr==3.5.0 # only basic OCR and document image preprocessing capabilities are needed
+			pip install "paddleocr[all]" # requires all optional capabilities such as document parsing, document comprehension, document translation, and key information extraction
+			```
+		- Code
+			- [character recognition](demo/Python/test_paddleocr.py)
 
 **The project support platform:**
 - windows10 64 bits: It can be directly build with VS2022 in windows10 64bits.
