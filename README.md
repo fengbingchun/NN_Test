@@ -136,23 +136,28 @@
 			- [CocoDataset class](demo/Python/test_labelme2coco_CocoDataset.py)
 			- [PyTorch set seed](demo/Python/test_set_seed.py)
 	- Ultralytics
-		- Installation(Anaconda)
+		- Installation(Anaconda):Note:after configuring according to the following commands, you need to downgrade the versions of OpenCV and NumPy: opencv-python: 4.10.0.84; numpy: 1.26.4
 			```
 			# cpu
-			conda create --name ultralytics-env python=3.8 -y
+			conda create --name ultralytics-env python=3.10 -y
 			conda activate ultralytics-env
-			pip install ultralytics
+			pip install ultralytics==8.4.56
+			pip install colorama
+			pip install openvino==2026.0.0 # keep the same version as libopenvino
+			pip install nncf==2.8.0 # openvino INT8 need
 
 			# cuda
 			# install cuda 11.8
 			# install cudnn v8.7.0: copy the contents of bin,include,lib/x64 cudnn directories to the corresponding CUDA directories
 			# install tensorrt 8.5.3.1:
 			#	copy the contents of bin,include,lib/*.lib,lib/*.dll tensorrt directories to the corresponding CUDA directories
-			# 	enter the python directory: pip install tensorrt-8.5.3.1-cp38-none-win_amd64.whl
-			conda create --name ultralytics-env-cuda python=3.8 -y
+			# 	enter the python directory: pip install tensorrt-8.5.3.1-cp310-none-win_amd64.whl
+			conda create --name ultralytics-env-cuda python=3.10 -y
 			conda activate ultralytics-env-cuda
-			conda install -c pytorch -c nvidia -c conda-forge pytorch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 pytorch-cuda=11.8 ultralytics # pytorch 2.2.2
-			conda install -c conda-forge openvino=2024.0.0 # keep the same version as libopenvino
+			conda install pytorch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 pytorch-cuda=11.8 -c pytorch -c nvidia
+			pip install ultralytics==8.4.56
+			pip install colorama
+			pip install openvino==2026.0.0 # keep the same version as libopenvino
 			pip install nncf==2.8.0 # openvino INT8 need
 			pip install openpyxl # write excel file
 			pip install moviepy # parse video file
@@ -165,8 +170,8 @@
 		- Code
 			- [LabelMe JSON to YOLOv8 TXT: Detect](demo/Python/test_labelme2yolov8_detect.py)
 			- [EISeg JSON to YOLOV8 TXT: Segment](demo/Python/test_eiseg2yolov8_segment.py)
-			- [YOLOv8 train: detect/segment/classify](demo/Python/test_yolov8_train.py)
-			- [YOLOv8 predict: detect/segment/classify](demo/Python/test_yolov8_predict.py)
+			- [YOLOv8/YOLO11/YOLO26 train: detect/segment/classify/obb](demo/Python/test_yolo.py)
+			- [YOLOv8/YOLO11/YOLO26 predict: detect/segment/classify/obb](demo/Python/test_yolo.py)
 			- [YOLOv8 segment onnxruntime predict](demo/Python/test_yolov8_segment_onnxruntime_predict.py)
 			- [image classify: include AlexNet, ResNet, DenseNet](demo/Python/test_classify.py)
 			- [YOLOv8 preprocess: detect/segment](demo/Python/test_yolov8_preprocess.py)
