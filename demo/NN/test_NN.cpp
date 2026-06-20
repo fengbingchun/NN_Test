@@ -6,7 +6,7 @@
 
 int main()
 {
-	if (auto ret = test_yolov8_obb_openvino(); ret == 0)
+	if (auto ret = test_yolo26_classify_opencv(); ret == 0)
 		std::cout << "========== test success ==========\n";
 	else
 		std::cerr << "########## test fail ##########\n";

@@ -170,8 +170,8 @@
 		- Code
 			- [LabelMe JSON to YOLOv8 TXT: Detect](demo/Python/test_labelme2yolov8_detect.py)
 			- [EISeg JSON to YOLOV8 TXT: Segment](demo/Python/test_eiseg2yolov8_segment.py)
-			- [YOLOv8/YOLO11/YOLO26 train: detect/segment/classify/obb](demo/Python/test_yolo.py)
-			- [YOLOv8/YOLO11/YOLO26 predict: detect/segment/classify/obb](demo/Python/test_yolo.py)
+			- [YOLOv8/YOLO11/YOLO26 train: detect/segment/classify/obb/semantic](demo/Python/test_yolo.py)
+			- [YOLOv8/YOLO11/YOLO26 predict: detect/segment/classify/obb/semantic](demo/Python/test_yolo.py)
 			- [YOLOv8 segment onnxruntime predict](demo/Python/test_yolov8_segment_onnxruntime_predict.py)
 			- [image classify: include AlexNet, ResNet, DenseNet](demo/Python/test_classify.py)
 			- [YOLOv8 preprocess: detect/segment](demo/Python/test_yolov8_preprocess.py)

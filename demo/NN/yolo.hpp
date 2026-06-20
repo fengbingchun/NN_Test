@@ -1,6 +1,8 @@
 #ifndef FBC_NN_TEST_YOLO_HPP_
 #define FBC_NN_TEST_YOLO_HPP_
 
+int test_yolo26_classify_opencv();
+
 int test_yolo11_obb_opencv();
 int test_yolo11_obb_onnxruntime();
 int test_yolov8_obb_openvino();

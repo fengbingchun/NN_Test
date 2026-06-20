@@ -651,6 +651,60 @@ int test_yolov8_classify_opencv()
 	return 0;
 }
 
+int test_yolo26_classify_opencv()
+{
+	auto net = cv::dnn::readNetFromONNX(onnx_file);
+	if (net.empty()) {
+		std::cerr << "Error: there are no layers in the network: " << onnx_file << std::endl;
+		return -1;
+	}
+
+	if (cuda_enabled) {
+		net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+		net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+	}
+	else {
+		net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+		net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+	}
+
+	auto classes = parse_classes_file(classes_file);
+	if (classes.size() == 0) {
+		std::cerr << "Error: fail to parse classes file: " << classes_file << std::endl;
+		return -1;
+	}
+
+	for (const auto& [key, val] : get_dir_images(images_dir)) {
+		cv::Mat frame = cv::imread(val, cv::IMREAD_COLOR);
+		if (frame.empty()) {
+			std::cerr << "Warning: unable to load image: " << val << std::endl;
+			continue;
+		}
+
+		cv::Mat bgr = modify_image_size(frame); // top left padding
+		cv::Mat blob;
+		cv::dnn::blobFromImage(bgr, blob, 1.0 / 255.0, cv::Size(input_size[1], input_size[0]), cv::Scalar(), true, false);
+		net.setInput(blob);
+
+		std::vector<cv::Mat> outputs;
+		net.forward(outputs, net.getUnconnectedOutLayersNames());
+
+		const float* scores = (const float*)outputs[0].data;
+		int cls{ 0 };
+		float best_score = scores[0];
+		for (auto i = 1; i < outputs[0].cols; ++i) {
+			if (scores[i] > best_score) {
+				best_score = scores[i];
+				cls = i;
+			}
+		}
+
+		std::cout << "image name: " << val << ", category: " << classes[cls] << ", conf: " << std::format("{:.4f}", best_score) << std::endl;
+	}
+
+	return 0;
+}
+
 int test_yolov8_classify_libtorch()
 {
 	if (auto flag = torch::cuda::is_available(); flag == true)
@@ -1300,6 +1354,7 @@ int test_yolov8_segment_opencv()
 	return 0;
 }
 
+
 /////////////////////////////////////////////////////////////////
 // Blog: https://blog.csdn.net/fengbingchun/article/details/139552222
 int test_yolov8_segment_libtorch()
@@ -1490,6 +1545,7 @@ int test_yolo11_obb_opencv()
 
 	return 0;
 }
+
 
 int test_yolo11_obb_onnxruntime()
 {
