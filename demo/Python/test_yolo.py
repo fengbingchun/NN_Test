@@ -16,10 +16,11 @@ np.bool = np.bool_ # Fix Error: AttributeError: module 'numpy' has no attribute 
 #	https://blog.csdn.net/fengbingchun/article/details/141931184
 #	https://blog.csdn.net/fengbingchun/article/details/161764208
 #	https://blog.csdn.net/fengbingchun/article/details/162141269
+#	https://blog.csdn.net/fengbingchun/article/details/164190008
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="YOLOv8/YOLO11/YOLO26 train and predict")
-	parser.add_argument("--task", required=True, type=str, choices=["detect", "segment", "classify", "obb", "semantic"], help="specify what kind of task")
+	parser.add_argument("--task", required=True, type=str, choices=["detect", "segment", "classify", "obb", "semantic", "pose"], help="specify what kind of task")
 	parser.add_argument("--mode", required=True, type=str, choices=["train", "predict"], help="train or predict")
 	parser.add_argument("--model_name", required=True, type=str, help="model name")
 	parser.add_argument("--yaml", type=str, help="yaml file or datasets path(classify)")
@@ -55,6 +56,17 @@ def train(task, model_name, yaml, epochs, imgsz, patience, batch, optimizer, lr0
 		if task == "classify":
 			print(f"Top-1 Accuracy:{metrics.top1:.6f}") # top1 accuracy
 			print(f"Top-5 Accuracy: {metrics.top5:.6f}") # top5 accuracy
+		elif task == "pose":
+			print(f"metrics.box.map: {metrics.box.map}") # map50-95
+			print(f"metrics.box.map50: {metrics.box.map50}") # map50
+			print(f"metrics.box.map75: {metrics.box.map75}") # map75
+			print(f"metrics.box.maps: {metrics.box.maps}") # a list containing mAP50-95 for each category
+			print(f"metrics.box.image_metrics: {metrics.box.image_metrics}") # per-image metrics dictionary for box with precision, recall, F1, TP, FP, and FN
+			print(f"metrics.pose.map: {metrics.pose.map}") # map50-95(P)
+			print(f"metrics.pose.map50: {metrics.pose.map50}") # map50(P)
+			print(f"metrics.pose.map75: {metrics.pose.map75}") # map75(P)
+			print(f"metrics.pose.maps: {metrics.pose.maps}") # a list containing mAP50-95(P) for each category
+			print(f"metrics.pose.image_metrics: {metrics.pose.image_metrics}") # per-image metrics dictionary for pose with precision, recall, F1, TP, FP, and FN
 		else:
 			print(f"map50-95(B):", metrics.box.map)
 			print(f"map50(B):", metrics.box.map50)
@@ -90,7 +102,7 @@ def predict(task, model_name, device, verbose, dir_images, dir_result):
 	model = YOLO(model_name) # load an model, support format: *.pt, *.onnx, *.torchscript, *.engine, openvino_model
 	# model.info() # display model information # only *.pt format support
 
-	if task == "detect" or task =="segment" or task == "obb" or task == "semantic":
+	if task != "classify":
 		os.makedirs(dir_result, exist_ok=True)
 
 	images = _get_images(dir_images)
@@ -98,10 +110,18 @@ def predict(task, model_name, device, verbose, dir_images, dir_result):
 	for image in images:
 		results = model.predict(dir_images+"/"+image, verbose=verbose, device=device)
 
-		if task == "detect" or task =="segment" or task == "obb" or task == "semantic":
-			for result in results:
-				# print("result:", result)
-				result.save(dir_result+"/"+image)
+		if task != "classify":
+			# print("result:", results[0])
+			results[0].save(dir_result+"/"+image)
+
+			if task == "pose":
+				print(f"image name: {image}")
+				xy = results[0].keypoints.xy # x and y coordinates
+				print(f"xy: {xy}")
+				xyn = results[0].keypoints.xyn # normalized
+				print(f"xyn: {xyn}")
+				kpts = results[0].keypoints.data # x, y, visibility(if available)
+				print(f"kpts: {kpts}")
 		else:
 			print(f"class names:{results[0].names}: top5: {results[0].probs.top5}; conf:{results[0].probs.top5conf}")
 
