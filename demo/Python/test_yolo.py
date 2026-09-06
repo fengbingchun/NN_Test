@@ -3,6 +3,7 @@ import colorama
 from ultralytics import YOLO
 import torch
 import os
+import cv2
 
 import numpy as np
 np.bool = np.bool_ # Fix Error: AttributeError: module 'numpy' has no attribute 'bool'. OR: downgrade numpy: pip unistall numpy; pip install numpy==1.23.1
@@ -17,10 +18,11 @@ np.bool = np.bool_ # Fix Error: AttributeError: module 'numpy' has no attribute 
 #	https://blog.csdn.net/fengbingchun/article/details/161764208
 #	https://blog.csdn.net/fengbingchun/article/details/162141269
 #	https://blog.csdn.net/fengbingchun/article/details/164190008
+#	https://blog.csdn.net/fengbingchun/article/details/164426577
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="YOLOv8/YOLO11/YOLO26 train and predict")
-	parser.add_argument("--task", required=True, type=str, choices=["detect", "segment", "classify", "obb", "semantic", "pose"], help="specify what kind of task")
+	parser.add_argument("--task", required=True, type=str, choices=["detect", "segment", "classify", "obb", "semantic", "pose", "track_detect"], help="specify what kind of task")
 	parser.add_argument("--mode", required=True, type=str, choices=["train", "predict"], help="train or predict")
 	parser.add_argument("--model_name", required=True, type=str, help="model name")
 	parser.add_argument("--yaml", type=str, help="yaml file or datasets path(classify)")
@@ -125,6 +127,22 @@ def predict(task, model_name, device, verbose, dir_images, dir_result):
 		else:
 			print(f"class names:{results[0].names}: top5: {results[0].probs.top5}; conf:{results[0].probs.top5conf}")
 
+def predict_track(model_name, yaml, device, verbose, dir_images, dir_result):
+	model = YOLO(model_name)
+
+	os.makedirs(dir_result, exist_ok=True)
+
+	images = _get_images(dir_images)
+	for image in images:
+		results = model.track(dir_images + "/" + image, persist=True, tracker=yaml, verbose=verbose, device=device)
+
+		annotated_frame = results[0].plot() # returns the drawn detection bounding box, category, confidence score, track ID, and other information
+		cv2.imshow("YOLO26 Tracking", annotated_frame)
+		if cv2.waitKey(1) & 0xFF == ord("q"):
+			break
+
+		cv2.imwrite(dir_result + "/" + image, annotated_frame)
+
 def _set_gpu(id):
 	os.environ["CUDA_VISIBLE_DEVICES"] = id # set which graphics card to use: 0,1,2..., default is 0
 
@@ -146,6 +164,9 @@ if __name__ == "__main__":
 	if args.mode == "train":
 		train(args.task, args.model_name, args.yaml, args.epochs, args.imgsz, args.patience, args.batch, args.optimizer, args.lr0, args.lrf, args.dropout, args.augment)
 	else:
-		predict(args.task, args.model_name, device, args.verbose, args.dir_images, args.dir_result)
+		if args.task == "track_detect":
+			predict_track(args.model_name, args.yaml, device, args.verbose, args.dir_images, args.dir_result)
+		else:
+			predict(args.task, args.model_name, device, args.verbose, args.dir_images, args.dir_result)
 
 	print(colorama.Fore.GREEN + "====== execution completed ======")
