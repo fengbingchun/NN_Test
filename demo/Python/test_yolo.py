@@ -1,6 +1,7 @@
 import argparse
 import colorama
 from ultralytics import YOLO
+from ultralytics.utils.plotting import colorize_depth
 import torch
 import os
 import cv2
@@ -19,10 +20,11 @@ np.bool = np.bool_ # Fix Error: AttributeError: module 'numpy' has no attribute 
 #	https://blog.csdn.net/fengbingchun/article/details/162141269
 #	https://blog.csdn.net/fengbingchun/article/details/164190008
 #	https://blog.csdn.net/fengbingchun/article/details/164426577
+#	https://blog.csdn.net/fengbingchun/article/details/165225828
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="YOLOv8/YOLO11/YOLO26 train and predict")
-	parser.add_argument("--task", required=True, type=str, choices=["detect", "segment", "classify", "obb", "semantic", "pose", "track_detect"], help="specify what kind of task")
+	parser.add_argument("--task", required=True, type=str, choices=["detect", "segment", "classify", "obb", "semantic", "pose", "depth", "track_detect"], help="specify what kind of task")
 	parser.add_argument("--mode", required=True, type=str, choices=["train", "predict"], help="train or predict")
 	parser.add_argument("--model_name", required=True, type=str, help="model name")
 	parser.add_argument("--yaml", type=str, help="yaml file or datasets path(classify)")
@@ -69,6 +71,12 @@ def train(task, model_name, yaml, epochs, imgsz, patience, batch, optimizer, lr0
 			print(f"metrics.pose.map75: {metrics.pose.map75}") # map75(P)
 			print(f"metrics.pose.maps: {metrics.pose.maps}") # a list containing mAP50-95(P) for each category
 			print(f"metrics.pose.image_metrics: {metrics.pose.image_metrics}") # per-image metrics dictionary for pose with precision, recall, F1, TP, FP, and FN
+		elif task == "depth":
+			metrics = model.val(data=yaml)
+			print(f"metrics.delta1: {metrics.delta1}") # percentage of pixels within threshold δ=1.25
+			print(f"metrics.abs_rel: {metrics.abs_rel}") # mean absolute relative error
+			print(f"metrics.rmse: {metrics.rmse}") # root mean squared error (meters)
+			print(f"metrics.silog: {metrics.silog}") # scale-invariant logarithmic error
 		else:
 			print(f"map50-95(B):", metrics.box.map)
 			print(f"map50(B):", metrics.box.map50)
@@ -114,16 +122,24 @@ def predict(task, model_name, device, verbose, dir_images, dir_result):
 
 		if task != "classify":
 			# print("result:", results[0])
-			results[0].save(dir_result+"/"+image)
+			if task == "depth":
+				depth = results[0].depth.data.cpu().numpy() # torch.Tensor -> NumPy float32, shape (H, W), meters
+				cv2.imwrite(dir_result + "/" + image + "depth_colored.png", colorize_depth(depth, cmap="spectral"))  # (H, W, 3) BGR uint8
+				# Fix the range to 0-20 m so the same color means the same distance across frames
+				cv2.imwrite(dir_result + "/" + image + "depth_metric.png", colorize_depth(depth, vmin=0.0, vmax=20.0, cmap="inferno", mode="metric"))
+				# Blended overlay straight from the Results object (uses cmap="jet", mode="disparity")
+				results[0].save(dir_result + "/" + image + "depth_overlay.png")
+			else:
+				results[0].save(dir_result+"/"+image)
 
-			if task == "pose":
-				print(f"image name: {image}")
-				xy = results[0].keypoints.xy # x and y coordinates
-				print(f"xy: {xy}")
-				xyn = results[0].keypoints.xyn # normalized
-				print(f"xyn: {xyn}")
-				kpts = results[0].keypoints.data # x, y, visibility(if available)
-				print(f"kpts: {kpts}")
+				if task == "pose":
+					print(f"image name: {image}")
+					xy = results[0].keypoints.xy # x and y coordinates
+					print(f"xy: {xy}")
+					xyn = results[0].keypoints.xyn # normalized
+					print(f"xyn: {xyn}")
+					kpts = results[0].keypoints.data # x, y, visibility(if available)
+					print(f"kpts: {kpts}")
 		else:
 			print(f"class names:{results[0].names}: top5: {results[0].probs.top5}; conf:{results[0].probs.top5conf}")
 
