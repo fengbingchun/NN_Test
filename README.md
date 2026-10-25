@@ -1,5 +1,5 @@
 # NN_Test
-**This project contains some deep learning code(Note: depend on opencv/libtorch/onnxruntime):**
+**This project contains some deep learning code:**
 ## deep learning code(C++)
 - Perceptron
 - BP(Back Propagation)
@@ -195,6 +195,18 @@
 		```
 	- Code
 		- [character recognition](demo/Python/test_paddleocr.py)
+- InsightFace
+	- Installation(Anaconda)
+		```
+		conda create --name insightface python=3.12 -y
+		conda activate insightface
+		python -m pip install -U insightface
+		python -m pip install -U "insightface[privateframe]"
+		python -m pip install -U "insightface[gui]"
+		```
+	- Code
+		- [face detect/align/landmarks/recognize](demo/Python/test_insightface.py)
+		- [gender/age](demo/Python/test_insightface.py)
 **The project support platform:**
 - windows10 64 bits: It can be directly build with VS2022 in windows10 64bits.
 - Linux(temporarily suspended for maintenance):
