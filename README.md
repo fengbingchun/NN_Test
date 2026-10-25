@@ -1,5 +1,5 @@
 # NN_Test
-**This project contains some deep learning code:**
+**This project contains some deep learning code**
 ## deep learning code(C++)
 - Perceptron
 - BP(Back Propagation)
@@ -207,17 +207,15 @@
 	- Code
 		- [face detect/align/landmarks/recognize](demo/Python/test_insightface.py)
 		- [gender/age](demo/Python/test_insightface.py)
-**The project support platform:**
-- windows10 64 bits: It can be directly build with VS2022 in windows10 64bits.
+## The project support platform
+- Windows10 64 bits: it can be directly build with VS2022 in windows10 64bits
 - Linux(temporarily suspended for maintenance):
 	- DatasetToImage support cmake build(file position: prj/linux_cmake_DatasetToImage)
 	- Math support cmake build(file position: prj/linux_cmake_Math)
 	- tiny-cnn support cmake build(file position: prj/linux_cmake_tiny-cnn)
 	- tiny-dnn support cmake build(file position: prj/linux_cmake_tiny-dnn)
 	- NN support cmake build(file position: prj/linux_cmake_NN)
-
-**Windows VS Screenshot:**
+## Windows VS Screenshot
 ![](prj/x86_x64_vc12/Screenshot.png)
 
-
-**Blog:** [fengbingchun](https://blog.csdn.net/fengbingchun/category_3185667.html)
+## Blog: [fengbingchun](https://blog.csdn.net/fengbingchun/category_3185667.html)
